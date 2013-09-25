@@ -18,7 +18,7 @@ try:
     from matplotlib.backends.backend_wx import NavigationToolbar2Wx
     from matplotlib.figure import Figure
 except ImportError:
-    print 'Could not import Matplotlib files'
+    print 'Could not import Matplotlib files...'
 
 
 
