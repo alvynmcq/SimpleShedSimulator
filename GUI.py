@@ -8,18 +8,14 @@ import pprint
 
 
 #plotting with matplotlib:
-try:
-    import random
-    from numpy import arange, sin, pi
-    import matplotlib
-    matplotlib.use('WXAgg')
-    from matplotlib.backends.backend_wxagg import  NavigationToolbar2WxAgg
-    from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
-    from matplotlib.backends.backend_wx import NavigationToolbar2Wx
-    from matplotlib.figure import Figure
-except ImportError:
-    print 'Could not import Matplotlib files...'
-
+import random
+from numpy import arange, sin, pi
+import matplotlib
+matplotlib.use('WXAgg')
+from matplotlib.backends.backend_wxagg import  NavigationToolbar2WxAgg
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+from matplotlib.backends.backend_wx import NavigationToolbar2Wx
+from matplotlib.figure import Figure
 
 
 class RiskTable(wx.Frame):
