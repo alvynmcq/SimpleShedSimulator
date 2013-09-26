@@ -1,11 +1,9 @@
 import re
-
 import wx
 import wx.lib.mixins.listctrl  as  listmix
 import wx.grid as  gridlib
 import act
 import pprint
-
 
 #plotting with matplotlib:
 import random

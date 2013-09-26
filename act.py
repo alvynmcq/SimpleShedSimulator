@@ -1092,11 +1092,11 @@ class risktable:
 		self.table = {}
 		for q in self.net.GetActivities():
 			self.table[q.GetID()] = {}
-		
+
 	def AddRiskDriver(self, name, effectiveon = []):
 		
 		self.riskdrivers[name] = effectiveon
-	
+
 	def Update(self):
 		for q in self.table:
 			for w in self.riskdrivers:
@@ -1117,9 +1117,10 @@ class risktable:
 		for q in self.table:
 			totaltime = []
 			for w in self.table[q]:
+				base_duration = self.net.GetNetworkIDDict()[q].GetDuration() #extract all durations
 				params = self.table[q][w]
 				T = triang(min=params[0], ml=params[1], max=params[2]).generate(1)[0]
-				totaltime.append(T)
+				totaltime.append(base_duration + T)
 				times[q] = sum(totaltime)
 		
 		return times
@@ -1177,6 +1178,17 @@ if __name__ == "__main__":
 
 	P.PrintNetwork()
 
+	R = risktable(P)
+	R.AddRiskDriver('a', [1,2,3])
+	R.AddRiskDriver('b', [4,5,6])
+	
+	R.AddRiskDriverDuration(1, 'a', [10,11,12])
+	R.AddRiskDriverDuration(2, 'a', [10,11,12])
+	R.AddRiskDriverDuration(3, 'a', [10,11,12])
+	R.AddRiskDriverDuration(4, 'b', [10,11,12])
+	R.AddRiskDriverDuration(5, 'b', [10,11,12])
+	R.AddRiskDriverDuration(6, 'b', [10,11,12])
+	print R.GenerateTotalTimes()
 
 
 
