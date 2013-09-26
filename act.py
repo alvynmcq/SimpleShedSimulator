@@ -11,17 +11,11 @@ try:
 except:
 	print "Could not find module for simulation"
 
-try:
-	import numpy as np
-	import matplotlib.mlab as mlab
-	import matplotlib.pyplot as plt
-	from matplotlib.dates import date2num
-	
-except ImportError:
-	print 'Could not find modules for plotting'
-
-
-
+#plotting with matplotlib:
+import numpy as np
+import matplotlib.mlab as mlab
+import matplotlib.pyplot as plt
+from matplotlib.dates import date2num
 
 
 
@@ -243,8 +237,7 @@ class activity:
 					suc.append(s)
 					continue
 			self.S = suc
-			
-		
+
 	def AssignPredecesors(self,*args):
                 
 		'''Assigns predecesors to the activity inctance.
@@ -309,7 +302,7 @@ class activity:
 					pre.append(p)
 					continue
 			self.P = pre
-			
+
 	def GetStart(self, asobject=False):
                 
 		'''returns the startdate either as a list of times or as a datetimeobject.
@@ -397,6 +390,7 @@ class activity:
 			return self.ID
 		except:
 			print "No ID assigned. Use AssignID()."
+
 	def GetSuccsesors(self):
 		
 		'''Returns the succsessors of the activity
@@ -483,21 +477,21 @@ class activity:
 			return self.minduration
 		except:
 			return None
-	
+
 	def GetDurationRangeML(self):
 		try:
 			return self.mlduration
 		except:
 			return None
-	
+
 	def GetDurationRangeMax(self):
 		try:
 			return self.maxduration
 		except:
 			return None
-			
+
 	def IncrementID(self, increment, SUC=True, PRE=False, ID = True):
-		
+
 		if ID == True:
 			#increment id
 			current_ID = self.GetID()
@@ -930,7 +924,47 @@ class network:
 					except TypeError:
 						continue
 
+		#Updates successros which id is bigger than ID 
+		for i in self.IDs:
+					try:
+						for suc in self.dictionary[i].GetSuccsesors():
+							IncrementedValues = []
+							#Checks which successros are bigger than the IDs and increment
+							if StrToInt(suc) > ID:
+								if self.dictionary[i].GetID() < ID:
+									self.dictionary[i].S.remove(suc) #Remove element
+									condition = IntToStr(suc) 
+									IncrementedValues.append(str(StrToInt(suc) + increment) + condition) #Adds an incremented ID
+						self.dictionary[i].S = self.dictionary[i].S + IncrementedValues #Adds an incremented ID to initial list P
+	
+					except TypeError:
+						continue
+
 		self.dictionary[ID].IncrementID(increment, ID=False) #Increment Succsessors to activity ID asswell
+
+		#dont forget to update the idlist:
+		self.IDs = [q.GetID() for q in self.GetActivities()]
+
+	def InsertActivity(self, ID):
+		
+		#make room for new activity
+		self.IncrementNetworkAt(ID-1, increment = 1)
+		
+		# create a new activity instance
+		Activity = activity()
+		Activity.AssignDuration(1)
+		Activity.AssignID(ID )
+		Activity.AssignSuccsesors(ID+1)
+		self.AddActivity(Activity)
+		
+		#Don't forget to sort the network
+		self.SortNetwork()
+
+	def SortNetwork(self):
+		self.activities.sort(key = lambda x: x.ID)
+
+		#dont forget to update the idlist:
+		self.IDs = [q.GetID() for q in self.GetActivities()]
 
 	def PlotGantt(self):
 
@@ -1096,24 +1130,6 @@ class risktable:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		
-		
-
 if __name__ == "__main__":
 	a = activity()
 	a.AssignID(1)
@@ -1144,65 +1160,22 @@ if __name__ == "__main__":
 	f.AssignID(6)
 	f.AssignDuration(8)
 	f.AssignPredecesors(5)
-	
-	f.SetDurationRangeML(33)
-	print f.GetDurationRangeML(), "<--"
-
-
 
 	g = activity()
 	g.AssignID(7)
 	g.AssignDuration(10)
 	g.AssignPredecesors(6, 1,2)
-	g.SetDurationRange(min=4, ml=10, max=33)
 
 	P = network()
 	P.AddActivity(a,b,c,d,e,f,g)
-	#P.Simulate(n=10000)
+
 	P.PrintNetwork()
-	#P.PlotHistEnd(cumulative=True)
-	
-	#P.IncrementNetworkAt(ID=5, increment=1)
-	#P.PrintNetwork()
-	
-	
-	#P.SaveNetwork("TEST.TXT", heading=False)
-	
-	#p = network()
-	#p.OpenNetwork("TEST.TXT")
-	#p.PrintNetwork()
-	P.Simulate()
-	print P.GetSimulationVariates(ID = "ID7")
-	print ""
-	
-	R = risktable(P)
-	print R.table
-	
-	R.AddRiskDriver("Construction", effectiveon=[1,3])
-	R.AddRiskDriver("facilitating", effectiveon=[1,3])
-	
-	R.Update()
-	
-	print R.table
-	
-	R.AddRiskDriverDuration(1, 'Construction', [1,2,3])
-	R.AddRiskDriverDuration(3, 'Construction', [1,2,3])
-	R.AddRiskDriverDuration(1, 'facilitating', [1,2,3])
-	R.AddRiskDriverDuration(3, 'facilitating', [1,2,3])
-	
-	print R.table
-	
-	R.PrintRiskTable()
-	
-	pprint.pprint(R.GenerateTotalTimes())
-	
-	T = R.GenerateTotalTimes()
-	
-	print T , "hhhhhhhhhhhhhhhH"
-	P.Simulate(n=1000, RiskTable=R)
-	P.PlotHistEnd()
 
 
+	P.InsertActivity(ID=5)
+	
+
+	P.PrintNetwork()
 
 
 

@@ -152,15 +152,6 @@ class RiskTable(wx.Frame):
         #frame.panel.tabOne.DrawHistogram(self.project.networkends)
         #Draw the histogram to tab one on Notebook
         #frame.panel.tabFive.DrawSCurve(self.project.networkends)
-            
-            
-        
-
-
-
-
-
-
 
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
@@ -221,9 +212,6 @@ class TabPanel(wx.Panel, wx.ListCtrl):
         for i in range(len(activities)):
             self.list_ctrl.InsertStringItem(i, activities[i])
     
-
-
-
 
 class Panel(wx.Panel):
 
@@ -317,7 +305,7 @@ class Panel(wx.Panel):
         self.list_ctrl.SetStringItem(l, 1, "Name")
         self.list_ctrl.SetStringItem(l, 2, str(self.today))
         self.list_ctrl.SetStringItem(l, 3, str(self.today))
-        self.list_ctrl.SetStringItem(l, 4, '0')
+        self.list_ctrl.SetStringItem(l, 4, '1')
         
         #uodate network
         self.UpdateNetwork(event)
@@ -486,22 +474,15 @@ class Panel(wx.Panel):
         line_to_insert = self.list_ctrl.GetFocusedItem()
         line = str(line_to_insert +1)
         l = int(line)-1
-       
+        
+        self.project.InsertActivity(ID=int(line))
 
-        self.project.IncrementNetworkAt(ID=int(line)-1, increment=1)
-        
         self.WriteNetworkToGUI(event, self.project)
-        
-        self.list_ctrl.InsertStringItem(l, line)
-        self.list_ctrl.SetStringItem(l, 1, "Name")
-        self.list_ctrl.SetStringItem(l, 2, str(self.today))
-        self.list_ctrl.SetStringItem(l, 3, str(self.today))
-        self.list_ctrl.SetStringItem(l, 4, '0')
         
         self.GetFromGui(event)
-        self.project.PrintNetwork()
-        self.WriteNetworkToGUI(event, self.project)
-
+        
+        self.PrintNetwork()
+       
     def UpdateNetwork(self, event):
         self.GetFromGui(event)
         self.WriteNetworkToGUI(event, self.project)
@@ -559,7 +540,6 @@ class Panel(wx.Panel):
     def OpenRiskTable(self,event):
         risktable = RiskTable(self.project.GetActivities())
         risktable.Show(True)
-        
 
 
 class MainFrame(wx.Frame):
