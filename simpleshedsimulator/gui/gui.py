@@ -222,6 +222,13 @@ class TabPanel(wx.Panel, wx.ListCtrl):
         self.axes.hist(data, cumulative = True, bins = len(data), normed=False, histtype='step', linewidth=2)
         self.canvas.draw()
     
+    def DrawCriticalActivities(self, data=None, cla=True):
+        if cla == True:
+            self.axes.cla()
+            self.axes.grid()
+        self.axes.bar(data.keys(),data.values(), align='center')
+        self.canvas.draw()
+    
     def FillListCtrl(self, activities):
         for i in range(len(activities)):
             self.list_ctrl.InsertStringItem(i, activities[i])
@@ -280,11 +287,12 @@ class Panel(wx.Panel):
                          'End',
                          'Duration',
                          'Successor',
-                         'predecessor',
+                         'Predecessor',
                          'Min Duration',
                          'ML. Duration',
-                         'Max Duration']
-        column_size = 100
+                         'Max Duration'
+                         ]
+        column_size = 110
         for i in range(0,len(self.headings)):
             self.list_ctrl.InsertColumn(i, self.headings[i])
             self.list_ctrl.SetColumnWidth(i, column_size)
@@ -466,9 +474,18 @@ class Panel(wx.Panel):
         Id = "ID" + str(Id)
         data = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile)
         
+        self.project.CalculateTotalFloats()
+        criticality_data = {}
+        for q in self.project.GetActivities():
+			
+			slack = q.GetSlack(free=False)
+			criticality_data[q.GetID()] = slack + 1e-7
+        
+        
         #Updating
         self.tabOne.DrawHistogram(data)
         self.tabFive.DrawSCurve(data)
+        self.tabTwo.DrawCriticalActivities(criticality_data)
         
     def NewNetwork(self, event):
 
@@ -532,7 +549,6 @@ class Panel(wx.Panel):
             
         elif CurrentColumn == 5:
             suc = [str(q) for q in re.split('; |, |-|\n|,',str(value_to_replace))]
-            print suc, "hehehejk"
             Activitydict[ID].AssignSuccsesors(*suc)
 
         elif CurrentColumn == 6:

@@ -6,6 +6,7 @@ import json
 import pprint
 import os
 
+
 try:
 	from triangular import triang
 except:
@@ -78,11 +79,19 @@ class activity:
 	def __init__(self):
 
 		self.today = datetime.date.today()
-		self.critical = False
-		self.critical_time = None
+		
+		self.free_critical = False
+		self.total_critical = False
+		self.free_critical_slack = None
+		self.total_critical_slack = None
+		
+		self.early_start = None
+		self.late_start = None
+		self.early_finish = None
+		self.late_finish = None
 
 	def __eq__(self, other) :
-                
+
 			return self.ID == other.ID
 
 	def AssignID(self,ID):
@@ -436,23 +445,48 @@ class activity:
 		startdate = activity.GetEnd()
 		self.AssignStart(startdate[0], startdate[1], startdate[2])
 
-	def SetCritical(self, critical):
-		if critical in ["yes", True, "y", "Y", 1, "YES", "Yes" ]:
-			self.critical = True
+	def SetCritical(self, critical, free=True):
+		
+		if free == True:
+			if critical in ["yes", True, "y", "Y","YES", "Yes" ]:
+				self.free_critical = True
+		else:
+			if critical in ["yes", True, "y", "Y","YES", "Yes" ]:
+				self.total_critical = True
 
-	def GetCritical(self):
-		return self.critical
+	def GetCritical(self, free=False):
+		
+		if free == True:
+			return free_critical 
+		else:
+			return total_critical
 
-	def SetCriticalTime(self, time):
-		if time <= 0.0:
-			self.SetCritical(True)
+	def SetSlack(self, slack, free=False):
 
-		self.critical_time = time
+		if free == True:
+			
+			self.free_critical_slack = slack.days
+			if self.free_critical_slack <= 0.0:
+				self.free_critical_slack = 0
+				self.SetCritical(True, free = True)
+			
+			elif self.free_critical_slack > 0.0:
+				self.SetCritical(False, free = True)
+		
+		else:
+			self.total_critical_slack = slack
+			if self.total_critical_slack <= 0.0:
+				self.SetCritical(True, free = False)
+			elif self.total_critical_slack > 0.0:
+				self.SetCritical(False, free = False)
 
-	def GetCriticalTime(self):
+	def GetSlack(self, free=False):
 
-		return self.critical_time
-	
+		if free == True:
+			return self.free_critical_slack
+		else:
+			return self.total_critical_slack
+
 	def SetDurationRange(self, **kwargs):
 		
 		for q in kwargs.items():
@@ -529,7 +563,7 @@ class network:
 			pass
 
 	def AssignName(self, name):
-                
+
 		'''Assigns a name to the activit inctance.
 
 			Args:
@@ -687,6 +721,7 @@ class network:
 				endtimes = []
 			except KeyError:
 				continue
+			#handeling of predecessors
 			try:
 				for q in P:
 					if IntToStr(q) in ['fs','FS','Fs','fS']:
@@ -695,19 +730,175 @@ class network:
 						except KeyError:
 							continue
 					else:
-						q = int(q)
+						q = int(q) #FS condition assumed
 						endtimes.append(self.dictionary[q].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
 
-			except TypeError:
+			except TypeError: #if no predecessor is found today is assumed
 				endtimes.append(self.today)
-			
+
 			try:
 				earliest_start_date = max(endtimes)  #max endtime equals earliest starttime
-				self.dictionary[i].AssignStart(earliest_start_date.year, earliest_start_date.month, earliest_start_date.day) #assign earliest starttime
+				self.dictionary[i].AssignStart(earliest_start_date.year, 
+											   earliest_start_date.month,
+											   earliest_start_date.day) #assign earliest starttime
 			except TypeError:
 				pass
 
-	def GetNetworkEnd(self, asobject=True):
+	def CalculateFreeFloats(self):
+
+		#Update links and dates
+		self.__UpdateLinks
+		self.__CalculateDates
+		
+		for i in self.IDs:
+			try:
+				S = self.dictionary[i].GetSuccsesors() #predecesors for each activity i
+				starttimes = []
+			except KeyError:
+				continue
+			#handeling of predecessors
+			try:
+				for q in S:
+					if IntToStr(q) in ['fs','FS','Fs','fS']:
+						try:
+							starttimes.append(self.dictionary[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's succesors
+						except KeyError:
+							continue
+					else:
+						q = int(q) #FS condition assumed
+						starttimes.append(self.dictionary[q].GetStart(asobject=True)) #endtimes for activity i's predeccesors
+
+			except TypeError: #if no predecessor is found today is assumed
+				starttimes.append(self.today)
+			try:
+				earlist_predesecor_starttime = min(starttimes)
+				free_slack =  earlist_predesecor_starttime - self.dictionary[i].GetEnd(asobject=True)
+
+				self.dictionary[i].SetSlack(free_slack, free = True)
+			except:
+				pass
+
+	def GetPaths(self, start_activity_id=1, from_successors=True):
+		
+		def f(d):
+			paths = []
+			for key, value in d.items():
+				if value is None:
+					paths.append([key, value])
+				else:
+					internal_lists = f(value)
+					for l in internal_lists:
+						paths.append([key] + l)
+			return paths
+		
+		if from_successors == True:
+			def getsuccessors(ID):
+				try:
+					path = {}
+					for q in self.dictionary[StrToInt(ID)].GetSuccsesors():
+						path[StrToInt(q)] = getsuccessors(StrToInt(q))
+					return path
+				except TypeError:
+					pass
+
+			self.paths = getsuccessors(start_activity_id)
+
+		else:
+			def getpredecessors(ID):
+				try:
+					path = {}
+					for q in self.dictionary[StrToInt(ID)].GetPredecesors():
+						path[StrToInt(q)] = getpredecessors(StrToInt(q))
+					
+					return path
+				except TypeError:
+					pass
+
+			self.paths = getpredecessors(start_activity_id)
+
+
+		
+		paths = f(self.paths)
+		for path in paths:
+			path.insert(0,start_activity_id)
+		
+		return paths
+
+	def GetCriticalPath(self):
+		#find activity wiith latest enddate:
+		network_end_ID = self.GetNetworkEnd(return_ID =True)
+		paths = self.GetPaths(start_activity_id=network_end_ID, from_successors=False)
+		
+		critical_path = None
+		duration = 0
+		for path in paths:
+			if duration < self.CalculatePathDuration(path):
+				duration = self.CalculatePathDuration(path)
+				critical_path = path
+		
+		return [x for x in critical_path if x is not None] #removes None values
+
+	def CalculateTotalFloats(self):
+		self.CalculateFreeFloats()
+		critical_path = self.GetCriticalPath()
+		activities = [ID for ID in self.GetNetworkIDDict()]
+		non_critical_activities = [x for x in activities if x not in critical_path]
+		non_critical_activities_copy = list(non_critical_activities)
+		
+		#first those in the critical path
+		for q in self.activities:
+			if StrToInt(q.GetID()) in critical_path: q.SetSlack(0, free=False)
+		
+		def SlackSetter(non_critical_activities_copy):
+
+			tmp = []
+			for ID in non_critical_activities_copy:
+				
+				end = self.dictionary[ID].GetEnd(asobject = True)
+				starts = {}
+				for suc in self.dictionary[ID].GetSuccsesors():
+					starts[suc] =self.dictionary[StrToInt(suc)].GetStart(asobject = True) 
+				
+				true_successor = [StrToInt(q) for q in starts.keys() if starts[q]== end]
+
+				if len(true_successor) > 0:
+					if set(true_successor) <= set(non_critical_activities_copy):
+						tmp.append(true_successor[0])
+						tmp.append(ID)
+
+			try:
+				max_free_slack = max([self.dictionary[ID].GetSlack(free=True) for ID in set(tmp)])
+				
+				for ID in set(tmp):
+					self.dictionary[ID].SetSlack(max_free_slack,free=False)
+				
+				global diff
+				diff = set(non_critical_activities_copy) - set(tmp) 
+
+			except:
+				
+				for ID in non_critical_activities_copy:
+					totalslack = self.dictionary[ID].GetSlack(free=True)
+					self.dictionary[ID].SetSlack(totalslack,free=False)
+				
+				global diff
+				diff = set(non_critical_activities_copy) - set(non_critical_activities_copy) 
+
+		SlackSetter(non_critical_activities_copy)
+		while len(diff) > 0:
+			print diff
+			SlackSetter(diff)
+			print diff
+
+	def CalculatePathDuration(self, path):
+		durations = []
+		for ID in path:
+			if ID is not None:
+				durations.append(self.dictionary[ID].GetDuration())
+		
+		return sum(durations)
+
+	def GetNetworkEnd(self, asobject=True, return_ID=False):
 		
 		'''Get the last activity's end date
 
@@ -719,11 +910,17 @@ class network:
 		
 		#This should be updated to search throug thos activities which onlye has None Succsessors	
 		self.__CalculateDates() #recalculate project dates
-		enddates = []
-		for q in self.activities:
-			enddates.append(q.GetEnd(asobject))
-		
-		return max(enddates)
+		if return_ID == False:
+			enddates = []
+			for q in self.activities:
+				enddates.append(q.GetEnd(asobject))
+			return max(enddates)
+
+		else:
+			enddates = {}
+			for q in self.activities:
+				enddates[q.GetID()] = q.GetEnd(asobject)
+			return max(enddates, key=enddates.get)
 
 	def GetNetworkStart(self, asobject=True):
 		
@@ -1143,11 +1340,11 @@ if __name__ == "__main__":
 
 	c = activity()
 	c.AssignID(3)
-	c.AssignDuration(19)
+	c.AssignDuration(25)
 
 	d = activity()
 	d.AssignID(4)
-	d.AssignDuration(12)
+	d.AssignDuration(10)
 	d.AssignSuccsesors(5)
 
 
@@ -1163,13 +1360,32 @@ if __name__ == "__main__":
 
 	g = activity()
 	g.AssignID(7)
-	g.AssignDuration(10)
-	g.AssignPredecesors(6, 1,2)
+	g.AssignDuration(12)
+	g.AssignPredecesors(6,2,1)
+	
+	h = activity()
+	h.AssignID(8)
+	h.AssignDuration(12)
+	h.AssignPredecesors(6)
+	
+	i = activity()
+	i.AssignID(9)
+	i.AssignDuration(5)
+	i.AssignPredecesors(7,8)
 
 	P = network()
-	P.AddActivity(a,b,c,d,e,f,g)
+	P.AddActivity(a,b,c,d,e,f,g,h,i)
 
 	P.PrintNetwork()
+	
+	
+
+	
+	P.CalculateTotalFloats()
+	for act in P.GetActivities():
+		print act.GetID(), act.GetSlack(free=False)
+
+	P.PlotGantt()
 
 
 	P.InsertActivity(ID=5)
@@ -1188,10 +1404,3 @@ if __name__ == "__main__":
 	R.AddRiskDriverDuration(5, 'b', [10,11,12])
 	R.AddRiskDriverDuration(6, 'b', [10,11,12])
 	print R.GenerateTotalTimes()
-
-
-
-
-
-
-
