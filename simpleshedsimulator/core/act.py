@@ -14,9 +14,11 @@ except:
 
 #plotting with matplotlib:
 import numpy as np
+import matplotlib as mpl
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num
+from matplotlib import dates
 
 
 
@@ -1164,7 +1166,7 @@ class network:
 
 	def PlotGantt(self):
 
-		'''Plots the network in a ganttchart (currently uses Matplotlib). 
+		'''Plots the network in a ganttchart (currently uses Matplotlib). Currently, only the unic successors are marked with arrows 
 
 			Args: 
 
@@ -1190,14 +1192,38 @@ class network:
 				preid.append(StrToInt(pre[max(pre)]))
 			except:
 				preid.append(None)
-		
+
 		# Plot a line for every activity
 		plt.ylim(min(self.IDs)-1,max(self.IDs)+1)
+
+		y = []
+		for q in self.IDs:
+			print self.dictionary[StrToInt(q)].GetName()
+			if self.dictionary[StrToInt(q)].GetName() is not None:
+				y.append(str(self.dictionary[StrToInt(q)].GetName()))
+			else:
+				y.append(str(q))
+
 		plt.yticks(self.IDs)
-		#plt.yticks(range(max(self.IDs)+1))
+		plt.gca().set_yticklabels(y)
+		plt.gca().invert_yaxis()
 		plt.grid()
-		plt.hlines(ids, starts, ends, colors = 'green', lw = 15)
-		plt.vlines(starts, ids, preid, colors = 'black', lw = 1.5)
+		plt.hlines(ids, starts, ends, colors = 'green', lw = 9)
+		plt.vlines(starts, ids, preid, colors = 'black', lw = 0)
+
+		for q, w, e in zip(starts, ids, preid):
+			if e is not None:
+				plt.annotate('', xy=(q,w), xytext=(q,e),arrowprops=dict(arrowstyle="-|>",
+							connectionstyle="angle,angleA=0,angleB=-100,rad=5")
+							)
+
+		def mjrFormatter(x, pos):
+			start = self.GetNetworkStart()
+			difference = datetime.timedelta(x)
+			return start + difference
+
+		plt.gca().xaxis.set_major_formatter(mpl.ticker.FuncFormatter(mjrFormatter))
+
 		plt.show()
 
 	def SaveNetwork(self, path, heading=True):
@@ -1332,6 +1358,7 @@ if __name__ == "__main__":
 	a.AssignID(1)
 	a.AssignDuration(5)
 	a.AssignSuccsesors(2)
+	a.AssignName("hhh")
 
 	b = activity()
 	b.AssignID(2)
