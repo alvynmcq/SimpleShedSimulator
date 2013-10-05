@@ -226,7 +226,7 @@ class TabPanel(wx.Panel, wx.ListCtrl):
         if cla == True:
             self.axes.cla()
             self.axes.grid()
-        self.axes.bar(data.keys(),data.values(), align='center')
+        self.axes.hist(data, cumulative = True, bins = 25, normed=True)
         self.canvas.draw()
     
     def FillListCtrl(self, activities):
@@ -472,20 +472,19 @@ class Panel(wx.Panel):
         CurrentRow = event.m_itemIndex
         Id = int(self.list_ctrl.GetItem(CurrentRow,0).GetText())
         Id = "ID" + str(Id)
+        print self.dbfile
         data = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile)
         
-        self.project.CalculateTotalFloats()
-        criticality_data = {}
-        for q in self.project.GetActivities():
-			
-			slack = q.GetSlack(free=False)
-			criticality_data[q.GetID()] = slack + 1e-7
+        data_criticality = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile, table = "SimulationResults_critical")
+        
+        
+       
         
         
         #Updating
         self.tabOne.DrawHistogram(data)
         self.tabFive.DrawSCurve(data)
-        self.tabTwo.DrawCriticalActivities(criticality_data)
+        self.tabTwo.DrawCriticalActivities(data_criticality)
         
     def NewNetwork(self, event):
 

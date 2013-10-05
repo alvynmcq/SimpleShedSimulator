@@ -458,10 +458,13 @@ class activity:
 
 	def GetCritical(self, free=False):
 		
-		if free == True:
-			return free_critical 
-		else:
-			return total_critical
+		try:
+			if free == True:
+				return free_critical 
+			else:
+				return total_critical
+		except:
+			return "None"
 
 	def SetSlack(self, slack, free=False):
 
@@ -487,6 +490,7 @@ class activity:
 		if free == True:
 			return self.free_critical_slack
 		else:
+			print self.ID, self.total_critical_slack, "HHHHHHHH"
 			return self.total_critical_slack
 
 	def SetDurationRange(self, **kwargs):
@@ -953,12 +957,15 @@ class network:
 			      end (boelan) write all activity's enddates to database (not yet working)
 
 			Returns:
-				Returns a dattimeobject or a list 
+				Writes simulation variates to SQLite DB
 			Raises:'''
+		
+		#updating theproject
+		
 		
 		#Removing old database file
 		try:
-			os.remove("Simulation_variates.db")
+			os.remove(DbName)
 		except OSError:
 			pass
 		
@@ -967,13 +974,15 @@ class network:
 			db_string = ""
 			for q in self.activities:
 				db_string = db_string + "ID" + str(q.GetID()) + " TEXT" +  ", " 
-			db_string =  "CREATE TABLE SimulationResults(" +  db_string[:-2] + ")"  
-			print db_string
+			db_string_dates =  "CREATE TABLE SimulationResults(" +  db_string[:-2] + ")"  
+			db_string_critical =  "CREATE TABLE SimulationResults_critical(" +  db_string[:-2] + ")"  
+			print db_string_critical
 			#Creating database
 			con = lite.connect(DbName)
 			cur = con.cursor()
 			try:
-				cur.execute(db_string)
+				cur.execute(db_string_dates)
+				cur.execute(db_string_critical)
 			except:
 				print "Database allready exists"
 			con.commit() # Save (commit) the changes
@@ -988,7 +997,7 @@ class network:
 		if RiskTable == None:
 
 			for i in range(n):
-
+				self.CalculateTotalFloats()
 				#each activity is assigned a new duration here:
 				for q in self.activities:
 					try:
@@ -1004,17 +1013,26 @@ class network:
 				if WriteToDB == True:
 					#Every endate for each activity is here:
 					enddates = []
+					criticality = []
 					for q in self.activities:
 						try:
 							duration = q.GetEnd(asobject=True)-self.GetNetworkStart(asobject=True)
 							enddates.append(duration.days)
-						
+							critical = q.GetSlack(free=False)
+							criticality.append(critical)
 						
 						except AttributeError:
 							continue
 					enddates = str(tuple(enddates))
-					db_string = "INSERT INTO SimulationResults VALUES" + enddates 
-					cur.execute(db_string)
+					criticality= str(tuple(criticality))
+					print enddates
+					print criticality
+					db_string_dates = "INSERT INTO SimulationResults VALUES" + enddates 
+					db_string_criticality = "INSERT INTO SimulationResults_critical VALUES" + criticality
+					cur.execute(db_string_dates)
+					print db_string_criticality 
+					print db_string_dates
+					cur.execute(db_string_criticality)
 				
 
 					enddate = (self.GetNetworkEnd() - self.GetNetworkStart()).days
@@ -1024,6 +1042,7 @@ class network:
 		else:
 
 			for i in range(n):
+				self.CalculateTotalFloats()
 				#each activity is assigned a new duration here:
 				T = RiskTable.GenerateTotalTimes() #this is a dict on the form {'ID':totaltime}
 				for ID in T:
@@ -1034,25 +1053,32 @@ class network:
 				if WriteToDB == True:
 					#Every endate for each activity is here:
 					enddates = []
+					criticality = []
 					for q in self.activities:
 						try:
 							duration = q.GetEnd(asobject=True)-self.GetNetworkStart(asobject=True)
 							enddates.append(duration.days)
+							critical = q.GetSlack(free=False)
+							criticality.append(critical)
 						
 						
 						except AttributeError:
 							continue
 					enddates = str(tuple(enddates))
-					db_string = "INSERT INTO SimulationResults VALUES" + enddates 
-					cur.execute(db_string)
-				
+					criticality= str(tuple(criticality))
+					db_string_dates = "INSERT INTO SimulationResults VALUES" + enddates 
+					db_string_criticality = "INSERT INTO SimulationResults_critical VALUES" + criticality
+					cur.execute(db_string_dates)
+					print db_string_criticality 
+					print db_string_dates
+					cur.execute(db_string_criticality)
 
 					enddate = (self.GetNetworkEnd() - self.GetNetworkStart()).days
 					self.networkends.append(enddate)
 		con.commit()
 		con.close()
 
-	def GetSimulationVariates(self,DbName="Simulation_variates.db", ID = "ID1"):
+	def GetSimulationVariates(self,DbName="Simulation_variates.db", ID = "ID1", table="SimulationResults"):
 		
 		'''Returns the simulated variates from the simulation
 
@@ -1066,7 +1092,7 @@ class network:
 		try:
 			con = lite.connect(DbName)
 			cur = con.cursor()
-			argument = "SELECT %s FROM SimulationResults" % ID
+			argument = "SELECT %s FROM %s" % (ID, table) #this should not be done like this, ses e python docs
 			cur.execute(argument)
 			return [int(i[0]) for i in cur.fetchall()]
 		except:
@@ -1405,14 +1431,14 @@ if __name__ == "__main__":
 
 	P.PrintNetwork()
 	
-	
-
-	
 	P.CalculateTotalFloats()
-	for act in P.GetActivities():
-		print act.GetID(), act.GetSlack(free=False)
-
-	P.PlotGantt()
+	
+	for q in P.GetActivities():
+		print q.GetSlack()
+	
+	
+	
+	P.Simulate()
 
 
 	P.InsertActivity(ID=5)
