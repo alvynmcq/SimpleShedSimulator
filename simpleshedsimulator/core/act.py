@@ -36,8 +36,6 @@ def IntToStr(integer):
 	except TypeError:
 		return integer
 
-
-
 class IO:
 	def WriteNetworkToFile(self, path, projectinctance):
 		
@@ -70,10 +68,6 @@ class IO:
 		return project
 	
 		output.close()
-
-
-
-
 
 class activity:
 
@@ -183,7 +177,7 @@ class activity:
 			return "No startdate assigend. Use the method AssignStart"
 
 	def AssignSuccsesors(self,*args):
-                
+
 		'''Assigns succerssors to the activity inctance.
 
 			Args:
@@ -490,7 +484,7 @@ class activity:
 		if free == True:
 			return self.free_critical_slack
 		else:
-			print self.ID, self.total_critical_slack, "HHHHHHHH"
+
 			return self.total_critical_slack
 
 	def SetDurationRange(self, **kwargs):
@@ -961,8 +955,6 @@ class network:
 			Raises:'''
 		
 		#updating theproject
-		
-		
 		#Removing old database file
 		try:
 			os.remove(DbName)
@@ -1018,7 +1010,7 @@ class network:
 						try:
 							duration = q.GetEnd(asobject=True)-self.GetNetworkStart(asobject=True)
 							enddates.append(duration.days)
-							critical = q.GetSlack(free=False)
+							critical = q.GetSlack()
 							criticality.append(critical)
 						
 						except AttributeError:
@@ -1331,8 +1323,6 @@ class network:
 				pass
 			self.AddActivity(a)
 
-
-
 class risktable:
 	def __init__(self, net):
 		self.riskdrivers = {}
@@ -1384,7 +1374,6 @@ if __name__ == "__main__":
 	a.AssignID(1)
 	a.AssignDuration(5)
 	a.AssignSuccsesors(2)
-	a.AssignName("hhh")
 
 	b = activity()
 	b.AssignID(2)
@@ -1433,10 +1422,13 @@ if __name__ == "__main__":
 	
 	P.CalculateTotalFloats()
 	
+
+	
 	for q in P.GetActivities():
-		print q.GetSlack()
+		print q.GetID(), q.GetSlack()
 	
-	
+	P.PlotGantt()
+
 	
 	P.Simulate()
 
@@ -1444,7 +1436,6 @@ if __name__ == "__main__":
 	P.InsertActivity(ID=5)
 	
 
-	P.PrintNetwork()
 
 	R = risktable(P)
 	R.AddRiskDriver('a', [1,2,3])
@@ -1456,4 +1447,4 @@ if __name__ == "__main__":
 	R.AddRiskDriverDuration(4, 'b', [10,11,12])
 	R.AddRiskDriverDuration(5, 'b', [10,11,12])
 	R.AddRiskDriverDuration(6, 'b', [10,11,12])
-	print R.GenerateTotalTimes()
+	R.GenerateTotalTimes()

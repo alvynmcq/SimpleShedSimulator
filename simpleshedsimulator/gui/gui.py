@@ -18,6 +18,7 @@ from matplotlib.figure import Figure
 
 import os
 import sys
+import riskregister
 path = os.path.dirname(os.path.realpath(__file__))
 path = os.path.abspath(path)
 path = os.path.split(path)[0]
@@ -232,6 +233,10 @@ class TabPanel(wx.Panel, wx.ListCtrl):
     def FillListCtrl(self, activities):
         for i in range(len(activities)):
             self.list_ctrl.InsertStringItem(i, activities[i])
+
+    def DrawGannt(self):
+        pass
+
     
 
 class Panel(wx.Panel):
@@ -472,15 +477,10 @@ class Panel(wx.Panel):
         CurrentRow = event.m_itemIndex
         Id = int(self.list_ctrl.GetItem(CurrentRow,0).GetText())
         Id = "ID" + str(Id)
-        print self.dbfile
         data = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile)
-        
-        data_criticality = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile, table = "SimulationResults_critical")
-        
-        
        
-        
-        
+        data_criticality = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile, table = "SimulationResults_critical")
+
         #Updating
         self.tabOne.DrawHistogram(data)
         self.tabFive.DrawSCurve(data)
@@ -572,6 +572,13 @@ class Panel(wx.Panel):
     def OpenRiskTable(self,event):
         risktable = RiskTable(self.project.GetActivities())
         risktable.Show(True)
+    
+    def OpenRiskRegister(self,event):
+        app = riskregister.wx.PySimpleApp()
+        frame = riskregister.Frame1(None)
+        frame.Show()
+
+        app.MainLoop()
 
 
 class MainFrame(wx.Frame):
@@ -606,6 +613,7 @@ class MainFrame(wx.Frame):
         SIMULATE = analysis.Append(-1, '&Simulate\tCtrl+s', 'Simulate network')
         RISKTABLE = analysis.Append(-1, '&Risk table\tCtrl+t', 'View and edit risktable')
         GENERATEREPORT = analysis.Append(-1, '&Generate report\tCtrl+g', 'Generate report')
+        RISKREGISTER = analysis.Append(-1, '&Risk register\tCtrl+r', 'Risk register')
         
         menubar.Append(analysis, '&Analysis')
         
@@ -632,6 +640,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnQuit, EXIT)
         self.Bind(wx.EVT_MENU, self.OnAbout, ABOUT)
         self.Bind(wx.EVT_MENU, self.panel.OpenRiskTable, RISKTABLE)
+        self.Bind(wx.EVT_MENU, self.panel.OpenRiskRegister, RISKREGISTER)
         
         #Hotkeys
         OPEN_ID = wx.NewId()
@@ -649,6 +658,7 @@ class MainFrame(wx.Frame):
         self.SetAcceleratorTable(accel_tbl)
         
         self.Show()
+
     def OnPrint(self, event):
         data = wx.PrintDialogData()
         data.EnableSelection(True)
