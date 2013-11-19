@@ -5,6 +5,9 @@ import pprint
 import wx
 import wx.lib.mixins.listctrl  as  listmix
 import wx.grid as  gridlib
+import wx.stc as stc
+import code
+import __main__
 
 #plotting with matplotlib:
 import random
@@ -30,6 +33,13 @@ sys.path.append(path)
 
 
 from core import act
+
+class II(code.InteractiveInterpreter):
+    def __init__(self, locals):
+        code.InteractiveInterpreter.__init__(self, locals)
+    def Runit(self, cmd):
+        code.InteractiveInterpreter.runsource(self, cmd)
+
 
 
 
@@ -163,11 +173,6 @@ class RiskTable(wx.Frame):
         frame.panel.GetFromGui(event)
         frame.panel.project.Simulate(n, RiskTable=self.R)
 
-        #Draw the histogram to tab one on Notebook
-        #frame.panel.tabOne.DrawHistogram(self.project.networkends)
-        #Draw the histogram to tab one on Notebook
-        #frame.panel.tabFive.DrawSCurve(self.project.networkends)
-
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
 
@@ -180,6 +185,54 @@ class NoteBook(wx.Notebook):
     
     def __init__(self, panel, style=wx.BK_RIGHT):
         wx.Notebook.__init__(self, panel)
+
+class Terminal(stc.StyledTextCtrl):
+    def __init__(self, parent, ID, style=0):
+        stc.StyledTextCtrl.__init__(self, parent, style)
+        sys.stdout = self
+        sys.stderr = self
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+        self.cmd = ''
+        self.lastpos = self.GetCurrentPos()
+        self.AppendTextUTF8("Welcome to SimpleShedSimulator! \n ...\n")
+    def SetInter(self, interpreter):
+        self.inter = interpreter
+    def write(self, ln):
+        self.AppendTextUTF8('%s'%str(ln))
+        self.GotoLine(self.GetLineCount())
+    def OnKeyPressed(self, event):
+        self.changed = True 
+        char = event.GetKeyCode() # get code of keypress
+        if (self.GetCurrentPos() < self.lastpos) and (char <314) or (char > 317):
+            pass
+            # need to check for arrow keys in this
+        elif char == 13:
+            """
+            What to do if <enter> is pressed? It depends if
+            there are enough
+            instructions
+            """
+            lnno = self.GetCurrentLine()
+            ln = self.GetLine(lnno)
+            self.cmd = self.cmd + ln + '\r\n'
+            self.NewLine()
+            self.tabs = ln.count('\t') #9
+            if (ln.strip() == '') or ((self.tabs < 1) and (':' not in ln)):
+                # record command in command list
+                self.cmd = self.cmd.replace('\r\n','\n')
+                # run command now
+                self.inter.Runit(self.cmd)
+                self.cmd = ''
+                self.lastpos = self.GetCurrentPos()
+            else:
+                if ':' in ln:
+                    self.tabs = self.tabs + 1
+                    self.AppendText('\t' * self.tabs)
+                    # change cursor position now
+                    p = self.GetLineIndentPosition(lnno + 1)
+                    self.GotoPos(p)
+        else:
+            event.Skip() # ensure keypress is shown
 
 
 class TabPanel(wx.Panel, wx.ListCtrl):
@@ -195,10 +248,9 @@ class TabPanel(wx.Panel, wx.ListCtrl):
         toolbar = NavigationToolbar2WxAgg(self.canvas)
         self.axes.grid()
         
-        #make listctrl for activities
         self.list_ctrl = EditableListCtrl(self, style=wx.LC_REPORT)
-        self.list_ctrl.InsertColumn(0,"Assumptions and premisses")
-        self.list_ctrl.SetColumnWidth(0, 450)
+
+        
         
         #sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -206,8 +258,11 @@ class TabPanel(wx.Panel, wx.ListCtrl):
         self.sizer1 = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.sizer1,1, wx.EXPAND|wx.ALL)
         self.sizer1.Add(toolbar)
+        
         self.sizer1.Add(self.list_ctrl, 1, wx.EXPAND|wx.ALL)
+        
         self.SetSizer(self.sizer)
+        
 
     def DrawHistogram(self, data, cla=True):
         if cla == True:
@@ -237,7 +292,6 @@ class TabPanel(wx.Panel, wx.ListCtrl):
     def DrawGannt(self):
         pass
 
-    
 
 class Panel(wx.Panel):
 
@@ -261,13 +315,16 @@ class Panel(wx.Panel):
         #self.CreateButtonBar(panel)
         self.CreateListCtrl(panel)
         self.CreateNoteBook(panel)
+        self.CreateTerminal(panel)
         self.CreateSizers()
 
     def CreateSizers(self):
         """Creates the main sizers"""
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        #self.sizer.Add(self.sizer1)
-        self.sizer.Add(self.list_ctrl, 1, wx.ALL|wx.EXPAND, 5)
+        self.sizer1 =  wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.sizer1,1, wx.ALL|wx.EXPAND, 5)
+        self.sizer1.Add(self.list_ctrl, 2, wx.ALL|wx.EXPAND, 5)
+        self.sizer1.Add(self.terminal, 1, wx.ALL|wx.EXPAND, 5)
         self.sizer.Add(self.notebook, 1, wx.ALL|wx.EXPAND, 5)
         self.SetSizer(self.sizer)
 
@@ -324,6 +381,9 @@ class Panel(wx.Panel):
         self.notebook.AddPage(self.tabFour, "Gantt Chart")
         self.notebook.AddPage(self.tabFive, "S - Curves")
         self.notebook.AddPage(self.tabSix, "Risk drivers")
+
+    def CreateTerminal(self, panel):
+        self.terminal = Terminal(self, -1) 
 
     def AddActivity(self, event):
         number_of_activities = self.list_ctrl.GetItemCount()
@@ -698,7 +758,10 @@ class MainFrame(wx.Frame):
 
 
 app = wx.App(False)
+I = II(None)
 frame = MainFrame()
+frame.panel.terminal.SetInter(I)
+
 app.MainLoop()
 
 
