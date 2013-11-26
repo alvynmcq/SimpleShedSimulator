@@ -47,11 +47,6 @@ class FileReader:
 
 
 
-if __name__ == '__main__':
-
-	fil = FileReader()
-	myfile = fil.ReadFile('/home/anders/SimpleShedSimulator/simpleshedsimulator/gui/register.xml')
-	riskregister = FileWriter(myfile)
 	
 
 
