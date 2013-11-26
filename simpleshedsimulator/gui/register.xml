@@ -1,0 +1,1 @@
+<Risk_register><risk_0><ID>2</ID><RiskDriver>strategy</RiskDriver><Name>STA</Name><Probability>1</Probability><Effect>2</Effect><Impact>3</Impact><Owner>you</Owner></risk_0><risk_1><ID>1</ID><RiskDriver>Contract</RiskDriver><Name>Contract definition</Name><Probability>0,1</Probability><Effect>0.3</Effect><Impact>2</Impact><Owner>me</Owner></risk_1></Risk_register>

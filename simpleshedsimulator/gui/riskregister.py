@@ -13,6 +13,7 @@ dbpath = os.path.join(path, 'db')
 sys.path.append(path)
 
 from core import reg
+from core import xml_writer as xml
 
 [wxID_FRAME1, wxID_FRAME1BUTTON1, wxID_FRAME1BUTTON2, wxID_FRAME1BUTTON3, 
  wxID_FRAME1BUTTON4, wxID_FRAME1LISTCTRL1, wxID_FRAME1PANEL1, 
@@ -82,7 +83,6 @@ class Frame1(wx.Frame):
         for i in range(0,len(self.headings)):
             parent.InsertColumn(i, self.headings[i])
             parent.SetColumnWidth(i, column_size)
-
 
     def _init_utils(self):
         # generated method, don't edit
@@ -179,33 +179,42 @@ class Frame1(wx.Frame):
         entrynumber=self.listCtrl1.GetFocusedItem()
         data=self.listCtrl1.DeleteItem(entrynumber)
 
-
     def OnButton1Button(self, event):
         event.Skip()
 
-    def OnFilU1items4Menu(self, event):
+    def OnFilU1items4Menu(self, event, *args):
+        #number_of_rows=self.listCtrl1.GetItemCount()
+        #number_of_columns=self.listCtrl1.GetColumnCount()
+        #data=[]
+        #for n in range(0,number_of_rows):
+            #intermediate=[]
+            #for m in range(0,number_of_columns):
+                #risk = self.listCtrl1.GetItem(n, m).GetText()
+                #intermediate.append(str(risk))
+                
+            #data.append(intermediate)
+        
         number_of_rows=self.listCtrl1.GetItemCount()
         number_of_columns=self.listCtrl1.GetColumnCount()
         data=[]
+       
+        riskregister = xml.FileWriter("Risk_register")
+       
         for n in range(0,number_of_rows):
-            intermediate=[]
+            current_risk = "risk_" + str(n)
+            riskregister.AddRow(current_risk)
             for m in range(0,number_of_columns):
-                value = self.listCtrl1.GetItem(n, m).GetText()
-                intermediate.append(str(value))
-            data.append(intermediate)
+                risk_item = self.listCtrl1.GetColumn(m).GetText().replace(" ", "")
+                risk_item_value = self.listCtrl1.GetItem(n, m).GetText()
+                
+                riskregister.AddRowItems(current_risk, risk_item,risk_item_value)
+
         dlg= wx.FileDialog ( None, style = wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             dirname = dlg.GetDirectory()
-            path=dirname + '/' + filename
-            reg.make_register(filename)
-            f = open(path+'.txt', 'a')
-            for entry in data:
-                for field in entry:
-                    f.write(field)
-                    f.write(',')
-                f.write('\n')
-            f.close()
+            path=dirname + '/' + filename + ".xml"
+            riskregister.WriteToFile(path)
         dlg.Destroy()
 
     def OnListCtrl1LeftDclick(self, event):
