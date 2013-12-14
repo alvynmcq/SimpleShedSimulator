@@ -28,7 +28,7 @@ from core import xml_writer as xml
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
 
-    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, style=0):
+    def __init__(self, parent, ID=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=0):
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.TextEditMixin.__init__(self)
 
@@ -41,13 +41,13 @@ class Frame1(wx.Frame):
     def _init_coll_flexGridSizer1_Items(self, parent):
         # generated method, don't edit
 
-        parent.AddWindow(self.button2, 0, border=0, flag=0)
-        parent.AddWindow(self.button3, 0, border=0, flag=0)
-        parent.AddWindow(self.button4, 0, border=0, flag=0)
+        parent.AddWindow(self.button2)
+        parent.AddWindow(self.button3)
+        parent.AddWindow(self.button4)
 
     def _init_coll_boxSizer1_Items(self, parent):
-        parent.AddSizer(self.flexGridSizer1, 0, border=5, flag=wx.ALL)
-        parent.AddWindow(self.listCtrl1, 1, border=5, flag=wx.EXPAND | wx.ALL)
+        parent.AddSizer(self.flexGridSizer1, 0)
+        parent.AddWindow(self.listCtrl1, 1, flag=wx.EXPAND | wx.ALL)
 
     def _init_coll_menuBar1_Menus(self, parent):
         parent.Append(menu=self.Fil, title=u'File')
@@ -59,8 +59,8 @@ class Frame1(wx.Frame):
         parent.Append(help='', id=wxID_FRAME1MENU1ITEMS3, kind=wx.ITEM_NORMAL, text=u'Save')
         parent.Append(help='', id=wxID_FRAME1MENU1ITEMS4, kind=wx.ITEM_NORMAL, text=u'Save register as...')
         
-        self.Bind(wx.EVT_MENU, self.OnMenu1Items0Menu, id=wxID_FRAME1FILITEMS0)
-        self.Bind(wx.EVT_MENU, self.OnMenu1Items1Menu, id=wxID_FRAME1FILITEMS1)
+        self.Bind(wx.EVT_MENU, self.OpenRegister, id=wxID_FRAME1FILITEMS0)
+        self.Bind(wx.EVT_MENU, self.AddRisk, id=wxID_FRAME1FILITEMS1)
         self.Bind(wx.EVT_MENU, self.OnFilU1items4Menu, id=wxID_FRAME1MENU1ITEMS4)
 
     def _init_coll_Edit_Items(self, parent):
@@ -117,24 +117,19 @@ class Frame1(wx.Frame):
 
         self.SetMenuBar(self.menuBar1)
 
-        self.panel1 = wx.Panel(id=wxID_FRAME1PANEL1, name='panel1',
-                               parent=self,pos=wx.Point(0, 0), 
-                               size=wx.Size(882, 535),style=wx.TAB_TRAVERSAL)
+        self.panel1 = wx.Panel(id=-1,parent=self,style=wx.TAB_TRAVERSAL, size=wx.Size(882, 535))
 
-        self.button2 = wx.Button(id=wxID_FRAME1BUTTON2, label=u'Add entry', name='button2', parent=self.panel1)
-        self.button2.Bind(wx.EVT_BUTTON, self.OnMenu1Items1Menu)
+        self.button2 = wx.Button(id=-1, label=u'Add entry', name='button2', parent=self.panel1)
+        self.button2.Bind(wx.EVT_BUTTON, self.AddRisk)
         
         self.listCtrl1 = EditableListCtrl(self, style=wx.LC_REPORT)
        
         self._init_coll_listCtrl1_Columns(self.listCtrl1)
         
-        self.listCtrl1.Bind(wx.EVT_LEFT_DCLICK, self.OnListCtrl1LeftDclick)
+        self.listCtrl1.Bind(wx.EVT_LEFT_DCLICK, self.AddRisk)
 
-        self.button3 = wx.Button(id=wxID_FRAME1BUTTON3, label=u'Find',
-              name='button3', parent=self.panel1, pos=wx.Point(191, 5),
-              size=wx.Size(85, 29), style=0)
-        self.button3.Bind(wx.EVT_BUTTON, self.OnButton3Button,
-              id=wxID_FRAME1BUTTON3)
+        self.button3 = wx.Button(id=-1, label=u'Find', name='button3', parent=self.panel1)
+        self.button3.Bind(wx.EVT_BUTTON, self.OnButton3Button)
 
         self.button4 = wx.Button(id=wxID_FRAME1BUTTON4, label=u'Del entry', name='button4', parent=self.panel1, pos=wx.Point(284, 5),size=wx.Size(85, 29), style=0)
         self.button4.Bind(wx.EVT_BUTTON, self.OnButton4Button, id=wxID_FRAME1BUTTON4)
@@ -164,10 +159,28 @@ class Frame1(wx.Frame):
                     n=n+1
             dlg.Destroy()
 
-    def OnMenu1Items0Menu(self, event):
-        event.skip()
+    def OpenRegister(self, event):
+        """parses an xml file and writes it to Listcrtl"""
+        dlg = wx.FileDialog(self, message="Open file ...",  style=wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            register = xml.FileReader().ReadFile(path)
+            
+            for riskdescriptions in register:
+                self.AddRisk(event)
+            
+            num_of_risk = 0
+            for riskdescriptions in register:
+                num_of_items = 0
+                for riskitem in riskdescriptions:
+                    print num_of_risk,num_of_items, str(riskitem.text)
+                    self.listCtrl1.SetStringItem(num_of_risk,num_of_items, str(riskitem.text))
+                    num_of_items += 1
+                num_of_risk += 1
+
+        dlg.Destroy()
     
-    def OnMenu1Items1Menu(self, event):
+    def AddRisk(self, event):
         #this function creates a dialog which allows you to register a new risk register
         self.listCtrl1.InsertStringItem(0,"ID")
 
@@ -217,12 +230,7 @@ class Frame1(wx.Frame):
             riskregister.WriteToFile(path)
         dlg.Destroy()
 
-    def OnListCtrl1LeftDclick(self, event):
-        dlg = Dialog2.Dialog2(self)
-        try:
-            dlg.ShowModal()
-        finally:
-            dlg.Destroy()
+
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()

@@ -39,14 +39,6 @@ class FileReader:
 
 	def ReadFile(self, name):
 		f = open(name, 'r')
-
 		data = f.read()
 		root = ET.fromstring(data)
 		return root
-
-
-
-
-	
-
-
