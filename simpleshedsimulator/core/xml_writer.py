@@ -6,13 +6,15 @@ import xml.etree.ElementTree as ET
 class FileWriter:
 	
 	'''The class provides a interface for writing xml files.
-	Example:
-		riskregister = FileWriter("Risk_register")
-		riskregister.AddRow("b")
-		riskregister.AddRow("c")
-		riskregister.AddRow("d")
-		riskregister.AddRowItems("c", "jippi",33)
-		riskregister.WriteToFile("my_xml_file.xml)
+	
+	Example::
+
+	    riskregister = FileWriter("Risk_register")
+	    riskregister.AddRow("b")
+	    riskregister.AddRow("c")
+	    riskregister.AddRow("d")
+	    riskregister.AddRowItems("c", "jippi",33)
+	    riskregister.WriteToFile("my_xml_file.xml)
 	'''
 
 	def __init__(self, filename):
@@ -22,15 +24,18 @@ class FileWriter:
 		self.tree = ET.ElementTree(register)
 
 	def AddRow(self, rowname):
+		"""Adds riskdescription to risk register"""
 		ET.SubElement(self.tree.findall(".")[0],rowname)
 		ET.dump(self.tree.findall(".")[0]) 
 
 	def AddRowItems(self, rowname, tag, value):
-			Cur_row_tag = self.tree.findall("." + rowname)[0]
-			ID = ET.SubElement(Cur_row_tag,tag)
-			ID.text = str(value)
+		"""Adds a risk attribute to the specified risk"""
+		Cur_row_tag = self.tree.findall("." + rowname)[0]
+		ID = ET.SubElement(Cur_row_tag,tag)
+		ID.text = str(value)
 
 	def WriteToFile(self, name="filename.xml"):
+		"""Saves the current tree to an xml file"""
 		self.tree.write(name)
 
 
@@ -42,3 +47,4 @@ class FileReader:
 		data = f.read()
 		root = ET.fromstring(data)
 		return root
+

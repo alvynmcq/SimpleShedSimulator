@@ -12,7 +12,6 @@ dbpath = os.path.join(path, 'db')
 
 sys.path.append(path)
 
-from core import reg
 from core import xml_writer as xml
 
 [wxID_FRAME1, wxID_FRAME1BUTTON1, wxID_FRAME1BUTTON2, wxID_FRAME1BUTTON3, 

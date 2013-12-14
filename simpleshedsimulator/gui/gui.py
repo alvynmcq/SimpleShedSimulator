@@ -44,7 +44,7 @@ class II(code.InteractiveInterpreter):
 
 
 class RiskTable(wx.Frame):
-
+    """Enables the Risk driver method"""
 
     def __init__(self, activities):
         wx.Frame.__init__(self, None, wx.ID_ANY, "Risktable")
@@ -99,6 +99,7 @@ class RiskTable(wx.Frame):
             self.grid.SetCellAlignment(i+2,0, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
         
     def AddRiskDriver(self, event):
+        '''Enables the Risk driver method'''
         #Add riskdrivers
         number_of_riskdrivers = self.grid.GetNumberCols()
         self.grid.InsertCols(pos=number_of_riskdrivers, numCols = 3, updateLabels = False)
