@@ -600,9 +600,9 @@ class network:
 		#Update links
 		number_of_activities = len(self.activities)
 		if number_of_activities > initial_number_of_activities:
-			self.__UpdateLinks()
+			self.UpdateLinks()
 
-	def __UpdateLinks(self):
+	def UpdateLinks(self):
 		d = []
 		for q in self.activities:
 			d.append( (q.GetID(),q) )
@@ -617,7 +617,6 @@ class network:
 						ww = StrToInt(w)
 						self.dictionary[ww].AssignPredecesors(qq)
 					else:
-						print a
 						w = StrToInt(w)
 						self.dictionary[w].AssignPredecesors(int(q))
 			except:
@@ -713,7 +712,7 @@ class network:
 			Raises:'''
 		
 		#Update links
-		self.__UpdateLinks
+		self.UpdateLinks
 		
 		for i in self.IDs:
 			try:
@@ -745,9 +744,12 @@ class network:
 				pass
 
 	def CalculateFreeFloats(self):
-
+		'''
+		Calculates each activity's free float for every activity in the network. For each activity instance the
+		.SetSlack(free=True) method is called.
+		'''
 		#Update links and dates
-		self.__UpdateLinks
+		self.UpdateLinks
 		self.__CalculateDates
 		
 		for i in self.IDs:
@@ -825,7 +827,17 @@ class network:
 		return paths
 
 	def GetCriticalPath(self):
-		#find activity wiith latest enddate:
+		'''
+		Returns a list consisting of those activities which are critical. That is those activities which
+		.GetSlack(free=False) = 0
+		
+		Args:
+
+		Returns:
+			list
+		Raises:
+		'''
+		#find activity with latest enddate:
 		network_end_ID = self.GetNetworkEnd(return_ID =True)
 		paths = self.GetPaths(start_activity_id=network_end_ID, from_successors=False)
 		
@@ -1245,6 +1257,15 @@ class network:
 		plt.show()
 
 	def SaveNetwork(self, path, heading=True):
+		'''
+		Saves the network to a .csv file
+		
+		Args: path
+
+		Returns:
+			
+		Raises:
+		'''
 		 
 		self.__CalculateDates() #recalculate project dates
 		

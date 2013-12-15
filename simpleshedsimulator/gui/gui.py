@@ -316,7 +316,7 @@ class Panel(wx.Panel):
         #self.CreateButtonBar(panel)
         self.CreateListCtrl(panel)
         self.CreateNoteBook(panel)
-        self.CreateTerminal(panel)
+        #self.CreateTerminal(panel) #To enable terminal:uncomment here!
         self.CreateSizers()
 
     def CreateSizers(self):
@@ -325,7 +325,7 @@ class Panel(wx.Panel):
         self.sizer1 =  wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.sizer1,1, wx.ALL|wx.EXPAND, 5)
         self.sizer1.Add(self.list_ctrl, 2, wx.ALL|wx.EXPAND, 5)
-        self.sizer1.Add(self.terminal, 1, wx.ALL|wx.EXPAND, 5)
+        #self.sizer1.Add(self.terminal, 1, wx.ALL|wx.EXPAND, 5) #To enable terminal:uncomment here!
         self.sizer.Add(self.notebook, 1, wx.ALL|wx.EXPAND, 5)
         self.SetSizer(self.sizer)
 
@@ -360,9 +360,11 @@ class Panel(wx.Panel):
             self.list_ctrl.InsertColumn(i, self.headings[i])
             self.list_ctrl.SetColumnWidth(i, column_size)
         
-        self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnSelected, self.list_ctrl)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.UpdatePlot, self.list_ctrl)
-
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnSelected, self.list_ctrl) #Dont use wx.EVT_LIST_END_LABEL_EDIT because of late update
+        #self.Bind(wx.wx.EVT_LIST_END_LABEL_EDIT, self.OnSelected, self.list_ctrl)
+        
+        
     def CreateNoteBook(self, panel):
         self.notebook = NoteBook(self, panel)
 
@@ -436,9 +438,9 @@ class Panel(wx.Panel):
                 pass
            
             try:
-                suc = [str(q) for q in re.split('; |, |-|\n',self.list_ctrl.GetItem(i,5).GetText())]
-                print suc
+                suc = [str(q) for q in re.split('; |, |-|\n|;|,|',self.list_ctrl.GetItem(i,5).GetText())]
                 self.activities[i].AssignSuccsesors(*suc)
+                print suc, "hhhhhggghggh"
             except ValueError:
                 pass          
             try:
@@ -533,11 +535,12 @@ class Panel(wx.Panel):
         self.tabFive.DrawSCurve(self.project.networkends)
     
     def UpdatePlot(self, event):
-        
+
         #Getting id and variates
         CurrentRow = event.m_itemIndex
         Id = int(self.list_ctrl.GetItem(CurrentRow,0).GetText())
         Id = "ID" + str(Id)
+
         data = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile)
        
         data_criticality = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile, table = "SimulationResults_critical")
@@ -582,51 +585,54 @@ class Panel(wx.Panel):
         self.WriteNetworkToGUI(event, self.project)
 
     def OnSelected(self, event):
-        CurrentColumn = int(event.m_col)
-        CurrentRow = event.m_itemIndex
-        ID = int(self.list_ctrl.GetItem(CurrentRow,0).GetText())
-        Activitydict = self.project.GetNetworkIDDict()
-
-        #update
-        value_to_replace = event.GetText()
-        print value_to_replace
-        if CurrentColumn == 0:
-            Activitydict[ID].AssignID(int(value_to_replace))
+        #CurrentColumn = int(event.GetColumn())
+        #CurrentRow = event.m_itemIndex
+        #ID = int(self.list_ctrl.GetItem(CurrentRow,0).GetText())
+        #Activitydict = self.project.GetNetworkIDDict()
+        #print ID, CurrentColumn, CurrentRow, "<-"
+        ##update
+        #value_to_replace = event.GetText()
+        #print value_to_replace
+        #if CurrentColumn == 0:
+            #Activitydict[ID].AssignID(int(value_to_replace))
         
-        elif CurrentColumn == 1:
-            Activitydict[ID].AssignName(str(value_to_replace))
+        #elif CurrentColumn == 1:
+            #Activitydict[ID].AssignName(str(value_to_replace))
 
-        elif CurrentColumn == 2:
-            start = re.split('; |, |-|\n',str(value_to_replace))
-            Activitydict[ID].AssignStart(int(start[0]),int(start[1]),int(start[2]))
+        #elif CurrentColumn == 2:
+            #start = re.split('; |, |-|\n',str(value_to_replace))
+            #Activitydict[ID].AssignStart(int(start[0]),int(start[1]),int(start[2]))
 
-        elif CurrentColumn == 3:
-            end = re.split('; |, |-|\n',str(value_to_replace))
-            Activitydict[ID].AssignEnd(int(end[0]),int(end[1]),int(end[2]))
+        #elif CurrentColumn == 3:
+            #end = re.split('; |, |-|\n',str(value_to_replace))
+            #Activitydict[ID].AssignEnd(int(end[0]),int(end[1]),int(end[2]))
 
-        elif CurrentColumn == 4:
-            Activitydict[ID].AssignDuration(int(value_to_replace))
+        #elif CurrentColumn == 4:
+            #Activitydict[ID].AssignDuration(int(value_to_replace))
             
-        elif CurrentColumn == 5:
-            suc = [str(q) for q in re.split('; |, |-|\n|,',str(value_to_replace))]
-            Activitydict[ID].AssignSuccsesors(*suc)
+        #elif CurrentColumn == 5:
+            #suc = [str(q) for q in re.split('; |, |-|\n|,|;',str(value_to_replace))]
+            #print suc, "jjjjjjjjjjjjjjjjjjjjjjjjjjjj"
+            #Activitydict[ID].AssignSuccsesors(*suc)
+            #self.project.UpdateLinks()
 
-        elif CurrentColumn == 6:
-            pre = [str(q) for q in re.split('; |, |-|\n|,',str(value_to_replace))]
-            Activitydict[ID].AssignPredecesors(*pre)
-        
-        elif CurrentColumn == 7:
-            Activitydict[ID].SetDurationRangeMin(int(value_to_replace))
-        
-        elif CurrentColumn == 8:
-            Activitydict[ID].SetDurationRangeML(int(value_to_replace))
-        
-        elif CurrentColumn == 9:
-            Activitydict[ID].SetDurationRangeMax(int(value_to_replace))
+        #elif CurrentColumn == 6:
+            #pre = [str(q) for q in re.split('; |, |-|\n|,|;',str(value_to_replace))]
+            #Activitydict[ID].AssignPredecesors(*pre)
+            #self.project.UpdateLinks()
 
+            
+        #elif CurrentColumn == 7:
+            #Activitydict[ID].SetDurationRangeMin(int(value_to_replace))
         
-        self.WriteNetworkToGUI(event, self.project)
+        #elif CurrentColumn == 8:
+            #Activitydict[ID].SetDurationRangeML(int(value_to_replace))
+        
+        #elif CurrentColumn == 9:
+            #Activitydict[ID].SetDurationRangeMax(int(value_to_replace))
+
         self.GetFromGui(event)
+        self.project.UpdateLinks()
         self.WriteNetworkToGUI(event, self.project)
         self.project.PrintNetwork()
     
@@ -761,7 +767,7 @@ class MainFrame(wx.Frame):
 app = wx.App(False)
 I = II(None)
 frame = MainFrame()
-frame.panel.terminal.SetInter(I)
+#frame.panel.terminal.SetInter(I) #To enable terminal:uncomment here!
 
 app.MainLoop()
 
