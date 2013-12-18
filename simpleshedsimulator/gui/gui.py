@@ -172,7 +172,9 @@ class RiskTable(wx.Frame):
 
         #Update from GUI network
         frame.panel.GetFromGui(event)
-        frame.panel.project.Simulate(n, RiskTable=self.R)
+        Panel.dbfile =  os.path.join(dbpath, "simulationvariates.db")
+        frame.panel.project.Simulate(n, RiskTable=self.R,DbName = Panel.dbfile )
+
 
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
@@ -187,7 +189,9 @@ class NoteBook(wx.Notebook):
     def __init__(self, panel, style=wx.BK_RIGHT):
         wx.Notebook.__init__(self, panel)
 
+
 class Terminal(stc.StyledTextCtrl):
+
     def __init__(self, parent, ID, style=0):
         stc.StyledTextCtrl.__init__(self, parent, style)
         sys.stdout = self
@@ -539,8 +543,9 @@ class Panel(wx.Panel):
         #Getting id and variates
         CurrentRow = event.m_itemIndex
         Id = int(self.list_ctrl.GetItem(CurrentRow,0).GetText())
-        Id = "ID" + str(Id)
-
+        Id = "ID" + str(Id) 
+        print self.dbfile
+        
         data = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile)
        
         data_criticality = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile, table = "SimulationResults_critical")
@@ -592,7 +597,7 @@ class Panel(wx.Panel):
         #print ID, CurrentColumn, CurrentRow, "<-"
         ##update
         #value_to_replace = event.GetText()
-        #print value_to_replace
+        #print value_to_replace, "hhhh"
         #if CurrentColumn == 0:
             #Activitydict[ID].AssignID(int(value_to_replace))
         
