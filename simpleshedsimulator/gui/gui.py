@@ -33,6 +33,7 @@ sys.path.append(path)
 
 
 from core import act
+from core import xml_writer as xml
 
 class II(code.InteractiveInterpreter):
     def __init__(self, locals):
@@ -48,7 +49,7 @@ class RiskTable(wx.Frame):
 
     def __init__(self, activities):
         wx.Frame.__init__(self, None, wx.ID_ANY, "Risktable")
- 
+
         # Add a panel and a grid
         panel = wx.Panel(self, wx.ID_ANY)
         self.grid = gridlib.Grid(panel)
@@ -69,22 +70,47 @@ class RiskTable(wx.Frame):
         self.grid.SetColLabelSize(0) 
         
         #Add buttons and bind them
-        self.button1 = wx.Button(panel, -1, "Add Risk Driver")
-        self.button1.Bind(wx.EVT_BUTTON, self.AddRiskDriver)
-        self.button2 = wx.Button(panel, -1, "Create risk table")
-        self.button2.Bind(wx.EVT_BUTTON, self.CreateRiskTable)
-        self.button3 = wx.Button(panel, -1, "Simulate risk table")
-        self.button3.Bind(wx.EVT_BUTTON, self.SimulateRiskTable)
+        #self.button1 = wx.Button(panel, -1, "Add Risk Driver")
+        #self.button1.Bind(wx.EVT_BUTTON, self.AddRiskDriver)
+        #self.button2 = wx.Button(panel, -1, "Create risk table")
+        #self.button2.Bind(wx.EVT_BUTTON, self.CreateRiskTable)
+        #self.button3 = wx.Button(panel, -1, "Simulate risk table")
+        #self.button3.Bind(wx.EVT_BUTTON, self.SimulateRiskTable)
         
         #add sizers
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.grid, 1,wx.RIGHT|wx.EXPAND, 5)
         sizer.Add(sizer1)
-        sizer1.Add(self.button1, 0, wx.RIGHT, 5)
-        sizer1.Add(self.button2, 0, wx.RIGHT, 5)
-        sizer1.Add(self.button3, 0, wx.RIGHT, 5)
+        #sizer1.Add(self.button1, 0, wx.RIGHT, 5)
+        #sizer1.Add(self.button2, 0, wx.RIGHT, 5)
+        #sizer1.Add(self.button3, 0, wx.RIGHT, 5)
         panel.SetSizer(sizer)
+        
+        #add menubar
+        menubar = wx.MenuBar()
+        #File menu
+        file = wx.Menu()
+        OPEN = file.Append(-1, '&Open risk table\tCtrl+o', 'Open an existing risk table')
+        SAVE = file.Append(-1, '&Save risk table\tCtrl+s', 'Save current risk table')
+        file.AppendSeparator()
+        LOAD = file.Append(-1, '&Import risk drivers\tCtrl+o', 'Load risk drivers from excisting riskregister')
+        menubar.Append(file, '&File')
+        
+        #File menu
+        analysis = wx.Menu()
+        ADDRISKDRIVER = analysis.Append(-1, '&Add risk driver\tCtrl+a', 'Add risk driver to project')
+        SIMULATE = analysis.Append(-1, '&Simulate\tCtrl+s', 'Simulate through risk table')
+        menubar.Append(analysis, '&Analysis')
+        self.SetMenuBar(menubar)
+        
+        #Bindings
+        self.Bind(wx.EVT_MENU, self.LoadRiskAreas, LOAD)
+        self.Bind(wx.EVT_MENU, self.SimulateRiskTable, SIMULATE)
+        self.Bind(wx.EVT_MENU, self.AddRiskDriver, ADDRISKDRIVER)
+        
+        #add  statusbar
+        self.CreateStatusBar() 
         
         #Add base duration
         self.grid.InsertCols(pos=0, numCols = 1, updateLabels = False)
@@ -97,8 +123,8 @@ class RiskTable(wx.Frame):
         for i in range(number_of_activities):
             self.grid.SetCellValue(i+2,0, str(activities[i].GetDuration()))
             self.grid.SetCellAlignment(i+2,0, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
-        
-    def AddRiskDriver(self, event):
+
+    def AddRiskDriver(self, event, riskdriver_name=" "):
         '''Enables the Risk driver method'''
         #Add riskdrivers
         number_of_riskdrivers = self.grid.GetNumberCols()
@@ -113,7 +139,8 @@ class RiskTable(wx.Frame):
             i = i+1 #Increment by one because of Base duration col
             if j % 3 == 0:
                 self.grid.SetCellSize(0, i, 1, 3)
-                self.grid.SetColLabelValue(i, " ")
+                self.grid.SetCellValue(0, i, riskdriver_name)
+                self.grid.SetColLabelValue(i, "")
                 self.grid.SetCellValue(1, i, "Min")
                 self.grid.SetCellAlignment(1,i, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
                 self.grid.SetCellAlignment(0,i, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
@@ -163,6 +190,16 @@ class RiskTable(wx.Frame):
         pprint.pprint(self.R.GenerateTotalTimes())
         
     def SimulateRiskTable(self, event):
+        """
+        Simulates the risk table
+        Args:
+                
+        Returns:
+               
+        Raises:
+        """
+        #create risk table
+        self.CreateRiskTable(event)
         
         #Get number of iterations from user
         dlg = wx.TextEntryDialog(self, 'Number of iterations:',"Simulation","1000", style=wx.OK)
@@ -174,6 +211,36 @@ class RiskTable(wx.Frame):
         frame.panel.GetFromGui(event)
         Panel.dbfile =  os.path.join(dbpath, "simulationvariates.db")
         frame.panel.project.Simulate(n, RiskTable=self.R,DbName = Panel.dbfile )
+
+    def LoadRiskAreas(self, event):
+        """
+        Opens a dialog and allows you to parse riskregisters for risk drivers. Then inserts the risk drivers to the 
+        grid 
+        Args:
+                
+        Returns:
+               
+        Raises:
+        """
+
+        dlg = wx.FileDialog(self, message="Open file ...",  style=wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            register = xml.FileReader().ReadFile(path)
+            
+            risk_drivers = []
+            for riskdescriptions in register:
+                for items in riskdescriptions:
+                    if items.tag == "RiskDriver":
+                        risk_drivers.append(items.text)
+            print risk_drivers
+            
+            for riskdriver in risk_drivers:
+                self.AddRiskDriver(event) 
+            
+            for i in range(len(risk_drivers)):
+                self.grid.SetCellValue(0, 3*i+1, risk_drivers[i]) #r3*1 because each 3 cells are merged
+                
 
 
 
