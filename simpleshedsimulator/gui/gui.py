@@ -714,9 +714,8 @@ class Panel(wx.Panel):
     
     def OpenRiskRegister(self,event):
         app = riskregister.wx.PySimpleApp()
-        frame = riskregister.Frame1(None)
+        frame = riskregister.RiskRegister(None, 'Risk register')
         frame.Show()
-
         app.MainLoop()
 
 
