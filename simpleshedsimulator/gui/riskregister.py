@@ -103,7 +103,7 @@ class RiskRegister(wx.Frame):
         data=self.list_ctrl.DeleteItem(entrynumber)
 
     def SaveRiskRegisterAs(self, event, *args):
-
+        
         number_of_rows=self.list_ctrl.GetItemCount()
         number_of_columns=self.list_ctrl.GetColumnCount()
         data=[]
@@ -126,6 +126,8 @@ class RiskRegister(wx.Frame):
             path=dirname + '/' + filename + ".xml"
             riskregister.WriteToFile(path)
         dlg.Destroy()
+
+
 
 
 

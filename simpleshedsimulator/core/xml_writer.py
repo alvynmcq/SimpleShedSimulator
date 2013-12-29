@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 class FileWriter:
 	
-	'''The class provides a interface for writing xml files.
+	'''The class provides a interface for writing risk registers to xml files.
 	
 	Example::
 
@@ -14,7 +14,10 @@ class FileWriter:
 	    riskregister.AddRow("c")
 	    riskregister.AddRow("d")
 	    riskregister.AddRowItems("c", "jippi",33)
-	    riskregister.WriteToFile("my_xml_file.xml)
+	    riskregister.AddRowAttribute("b", "attr", "value")
+	    riskregister.WriteToFile("my_xml_file.xml")
+	
+	Rownames are treated as unique, which means that two rows can not have identical names.
 	'''
 
 	def __init__(self, filename):
@@ -34,6 +37,19 @@ class FileWriter:
 		ID = ET.SubElement(Cur_row_tag,tag)
 		ID.text = str(value)
 
+	def AddRowAttribute(self, rowname, attribute_name, attribute_value):
+		'''Adds an attribute to the specified row
+		
+		Example::
+		
+		    <attribute_name="attribute_value">blabla</step>
+		
+		'''
+		
+		Cur_row_tag = self.tree.findall("." + rowname)[0]
+		Cur_row_tag.set(attribute_name, attribute_value)
+		
+
 	def WriteToFile(self, name="filename.xml"):
 		"""Saves the current tree to an xml file"""
 		self.tree.write(name)
@@ -47,4 +63,6 @@ class FileReader:
 		data = f.read()
 		root = ET.fromstring(data)
 		return root
+
+
 

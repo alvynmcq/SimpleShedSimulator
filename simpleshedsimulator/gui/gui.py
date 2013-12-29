@@ -69,22 +69,11 @@ class RiskTable(wx.Frame):
         #Hide Columns
         self.grid.SetColLabelSize(0) 
         
-        #Add buttons and bind them
-        #self.button1 = wx.Button(panel, -1, "Add Risk Driver")
-        #self.button1.Bind(wx.EVT_BUTTON, self.AddRiskDriver)
-        #self.button2 = wx.Button(panel, -1, "Create risk table")
-        #self.button2.Bind(wx.EVT_BUTTON, self.CreateRiskTable)
-        #self.button3 = wx.Button(panel, -1, "Simulate risk table")
-        #self.button3.Bind(wx.EVT_BUTTON, self.SimulateRiskTable)
-        
         #add sizers
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.grid, 1,wx.RIGHT|wx.EXPAND, 5)
         sizer.Add(sizer1)
-        #sizer1.Add(self.button1, 0, wx.RIGHT, 5)
-        #sizer1.Add(self.button2, 0, wx.RIGHT, 5)
-        #sizer1.Add(self.button3, 0, wx.RIGHT, 5)
         panel.SetSizer(sizer)
         
         #add menubar
@@ -108,6 +97,8 @@ class RiskTable(wx.Frame):
         self.Bind(wx.EVT_MENU, self.LoadRiskAreas, LOAD)
         self.Bind(wx.EVT_MENU, self.SimulateRiskTable, SIMULATE)
         self.Bind(wx.EVT_MENU, self.AddRiskDriver, ADDRISKDRIVER)
+        self.Bind(wx.EVT_MENU, self.SaveRiskTable, SAVE)
+        self.Bind(wx.EVT_MENU, self.OpenRiskTable, OPEN)
         
         #add  statusbar
         self.CreateStatusBar() 
@@ -187,8 +178,6 @@ class RiskTable(wx.Frame):
         
         self.R = R
         
-        pprint.pprint(self.R.GenerateTotalTimes())
-        
     def SimulateRiskTable(self, event):
         """
         Simulates the risk table
@@ -233,14 +222,133 @@ class RiskTable(wx.Frame):
                 for items in riskdescriptions:
                     if items.tag == "RiskDriver":
                         risk_drivers.append(items.text)
-            print risk_drivers
+
             
             for riskdriver in risk_drivers:
                 self.AddRiskDriver(event) 
             
             for i in range(len(risk_drivers)):
                 self.grid.SetCellValue(0, 3*i+1, risk_drivers[i]) #r3*1 because each 3 cells are merged
+
+    def SaveRiskTable(self, event):
+        '''
+        This method reads the risk table, opens a save as dialog and then writes the risk table to an "xml file"
+        
+        Cannot treat activities having multiple names
+        '''
+        
+        #establis xmlobject
+        risktable = xml.FileWriter("risk_table")
+        
+        #Get number of cols and row, this should be global variables...
+        number_of_cols = self.grid.GetNumberCols()
+        number_of_rows = self.grid.GetNumberRows()
+        
+        #Obtaining activities
+        for j in range(number_of_rows):
+            activity = str(self.grid.GetRowLabelValue(j))
+            if not activity == " ":
+                activity = activity.replace(" ", "_")
+
+                risktable.AddRow(activity)
                 
+                #Obtaining base durations
+                risktable.AddRowAttribute(activity, "baseduration", self.grid.GetCellValue(j,0)) 
+                
+                #Obtaining Riskdrivers and setting quantification
+                for i in range(1,number_of_cols,3):
+                    riskdriver = self.grid.GetCellValue(0,i)
+                    Min = self.grid.GetCellValue(j,i+0)
+                    ML = self.grid.GetCellValue(j,i+1)
+                    Max = self.grid.GetCellValue(j,i+2)
+                    quantification = str(Min) + "-" + str(ML) + "-" + str(Max)
+                    risktable.AddRowItems(activity, riskdriver, quantification)
+        
+
+        #Save dialog
+        dlg= wx.FileDialog ( None, style = wx.SAVE)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetFilename()
+            dirname = dlg.GetDirectory()
+            path=dirname + '/' + filename + ".xml"
+            risktable.WriteToFile(path)
+        dlg.Destroy()
+
+    def OpenRiskTable(self, event):
+        '''
+        This method opens an existing "xml like file containing a risk table
+        '''
+        #Open dialog
+        dlg= wx.FileDialog ( None, style = wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetFilename()
+            dirname = dlg.GetDirectory()
+            path=dirname + '/' + filename 
+
+            #make risktable object
+            risktable = xml.FileReader().ReadFile(path)
+            
+            #Deletes existing risktable by cols and rows
+            [self.grid.DeleteRows(0) for i in range(self.grid.GetNumberRows())] 
+            [self.grid.DeleteCols(0) for i in range(self.grid.GetNumberCols())]
+
+            #Creation of grid
+            number_of_activities = len(risktable)
+
+            #Fix the columns and headers accordingly
+            self.grid.AppendRows(number_of_activities+2)
+            self.grid.SetRowLabelValue(0, " ") #this is where Riskdriver comes
+            self.grid.SetRowLabelValue(1, " ") #this is where ML min max comes
+            
+            self.grid.SetRowLabelAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTRE)
+            self.grid.SetRowLabelSize(150) # should do this with self.grid.AutoSizeRow(i)
+            
+            self.grid.InsertCols(pos=0, numCols = 1, updateLabels = False)
+            collor = self.grid.GetLabelBackgroundColour()
+            self.grid.SetCellBackgroundColour (0, 0, collor)
+            self.grid.SetCellBackgroundColour (1, 0, collor)
+        
+            self.grid.SetCellValue(1,0, "Base")
+            self.grid.SetCellAlignment(1,0, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+            
+            #Insert activity names
+            for i in range(len(risktable)):
+                rowlabel = str(risktable[i].tag).replace("_", " ")
+                self.grid.SetRowLabelValue(2+i, rowlabel)
+                self.grid.SetCellValue(2+i, 0, str(risktable[i].attrib['baseduration']))
+            
+            risk_drivers = risktable[0][:]
+            
+            #Add riskdrivers to table
+            for riskdriver in risk_drivers:
+                self.AddRiskDriver(event) 
+            
+            #Insert riskdrivers 
+            for i in range(len(risk_drivers)):
+                self.grid.SetCellValue(0, 3*i+1, str(risk_drivers[i].tag)) #r3*1 because each 3 cells are merged
+            
+            #Insert quantification by looping trhough each activity's riskdrivers and count
+            row_number = 2
+            for activity in risktable:
+                
+                col_number = 1
+                for quant in activity:
+                    
+                    if quant.text == "--":
+                        col_number = col_number + 3
+                        continue
+                        
+                    else:
+                        quantification = quant.text.split("-")
+                        self.grid.SetCellValue(row_number, col_number+0, quantification[0])
+                        self.grid.SetCellValue(row_number, col_number+1, quantification[1])
+                        self.grid.SetCellValue(row_number, col_number+2, quantification[2])
+                        col_number = col_number + 3
+
+                row_number = row_number + 1
+            
+        dlg.Destroy()
+
 
 
 
@@ -511,7 +619,6 @@ class Panel(wx.Panel):
             try:
                 suc = [str(q) for q in re.split('; |, |-|\n|;|,|',self.list_ctrl.GetItem(i,5).GetText())]
                 self.activities[i].AssignSuccsesors(*suc)
-                print suc, "hhhhhggghggh"
             except ValueError:
                 pass          
             try:
@@ -611,7 +718,6 @@ class Panel(wx.Panel):
         CurrentRow = event.m_itemIndex
         Id = int(self.list_ctrl.GetItem(CurrentRow,0).GetText())
         Id = "ID" + str(Id) 
-        print self.dbfile
         
         data = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile)
        
