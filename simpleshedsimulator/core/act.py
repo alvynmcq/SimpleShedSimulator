@@ -70,7 +70,22 @@ class IO:
 		output.close()
 
 class activity:
+	'''Creates an activity instance which later can be used by a network object
 
+		Args:
+			
+		Returns:
+			Object
+		Raises:
+		
+		ex::
+		
+		   a = activity()
+		   a.AssignID(1)
+		   a.AssignDuration(5)
+		   a.AssignSuccsesors(2)
+		
+				'''
 
 	def __init__(self):
 
@@ -442,7 +457,13 @@ class activity:
 		self.AssignStart(startdate[0], startdate[1], startdate[2])
 
 	def SetCritical(self, critical, free=True):
-		
+		'''Sets the activity to critical
+
+		Args: free (True/False)
+			
+		Returns:
+			
+		Raises:'''
 		if free == True:
 			if critical in ["yes", True, "y", "Y","YES", "Yes" ]:
 				self.free_critical = True
@@ -451,7 +472,13 @@ class activity:
 				self.total_critical = True
 
 	def GetCritical(self, free=False):
-		
+		'''returns True/false depending on criticality of activity (.SetCritical())
+
+		Args: free (True/False)
+			
+		Returns:
+			
+		Raises:'''
 		try:
 			if free == True:
 				return free_critical 
@@ -461,7 +488,13 @@ class activity:
 			return "None"
 
 	def SetSlack(self, slack, free=False):
+		'''Sets the slack of the activity
 
+		Args: slack (int), free (True/False)
+			
+		Returns:
+			
+		Raises:'''
 		if free == True:
 			
 			self.free_critical_slack = slack.days
@@ -480,7 +513,13 @@ class activity:
 				self.SetCritical(False, free = False)
 
 	def GetSlack(self, free=False):
+		'''returns the slack of the activity
 
+		Args:  free (True/False)
+			
+		Returns: int
+			
+		Raises:'''
 		if free == True:
 			return self.free_critical_slack
 		else:
@@ -488,6 +527,19 @@ class activity:
 			return self.total_critical_slack
 
 	def SetDurationRange(self, **kwargs):
+		'''Sets the duration range of the activity
+
+		Args: 
+			
+		Returns:
+			
+		Raises:
+		
+		ex::
+		
+		   activity.SetDurationRang(min=1, ml=2, max=3)
+		
+		'''
 		
 		for q in kwargs.items():
 			if q[0] in ["min", "MIN", "Min"]:
@@ -498,27 +550,81 @@ class activity:
 				self.mlduration = q[1]
 	
 	def SetDurationRangeMin(self, MIN):
+		'''Sets the minimum duration of the activity
+
+		Args: MIN (int) 
+			
+		Returns:
+			
+		Raises:
+		
+		'''
 		self.minduration = MIN
 	
 	def SetDurationRangeML(self,ML):
+		'''Sets the most likely duration of the activity
+
+		Args: ML (int) 
+			
+		Returns:
+			
+		Raises:
+		
+		'''
 		self.mlduration = ML
 	
 	def SetDurationRangeMax(self,MAX):
+		'''Sets the maximum duration of the activity
+
+		Args: MAX (int) 
+			
+		Returns:
+			
+		Raises:
+		
+		'''
 		self.maxduration = MAX
 	
 	def GetDurationRangeMin(self):
+		'''Returns the minimum duration
+
+		Args: 
+			
+		Returns: self.minduration (int)
+			
+		Raises:
+		
+		'''
 		try:
 			return self.minduration
 		except:
 			return None
 
 	def GetDurationRangeML(self):
+		'''Returns the most likely duration
+
+		Args: 
+			
+		Returns: self.mlduration (int)
+			
+		Raises:
+		
+		'''
 		try:
 			return self.mlduration
 		except:
 			return None
 
 	def GetDurationRangeMax(self):
+		'''Returns the maximum duration
+
+		Args: 
+			
+		Returns: self.maxduration (int)
+			
+		Raises:
+		
+		'''
 		try:
 			return self.maxduration
 		except:
@@ -546,7 +652,23 @@ class activity:
 				pass
 
 class network:
+	'''
+	Creates an network instance. The network is based on previoulsy made activities
+	
+	ex::
+	
+	   P = network()
+	   P.AddActivity(a,b,c,d,e,f,g,h,i)
+	   P.PrintNetwork()
+	   P.CalculateTotalFloats()
 
+	   for q in P.GetActivities():
+		   print q.GetID(), q.GetSlack()
+
+	   P.PlotGantt()
+	   P.Simulate()
+
+	'''
 
 	def __init__(self):
 		self.activities = []
@@ -1345,6 +1467,41 @@ class network:
 			self.AddActivity(a)
 
 class risktable:
+	"""
+	Creates a risktable object which can be simulated through. A risk table with 3 riskdrivers and 
+	4 activities is on the form:
+	
+	+------------+------------+-----------+-----------+
+	|            |Riskdriver 1|Riskdriver2|Riskdriver3|
+	+============+============+===========+===========+
+	| activity_1 | [10,11,12] |           |           |
+	+------------+------------+-----------+-----------+
+	| activity_2 |            |[23,44,49] |[10,11,12] |
+	+------------+------------+-----------+-----------+
+	| activity_3 |            |           |[2, 3, 16] |
+	+------------+------------+-----------+-----------+
+	| activity_4 |            |[10,11,12] |           |
+	+------------+------------+-----------+-----------+
+	
+	ex::
+	
+	   P = network() #creates a network
+	   P.AddActivity(a,b,c,d,e,f,g,h,i) #add the activities a,b,c,..i
+
+	   R = risktable(P) #create the risk table
+	   R.AddRiskDriver('riskrdiver_1', [1,2,3]) #add riskdriver_1 and they are effective on activity with id 1,2 and 3
+	   R.AddRiskDriver('riskrdiver_2', [4,5,6]) #add riskdriver_1 and they are effective on activity with id 4, 5 and 6
+	   R.AddRiskDriverDuration(1, 'riskrdiver_1', [10,11,12]) #riskdriver_1 have an additional effect on activity 1
+	   R.AddRiskDriverDuration(2, 'riskrdiver_1', [10,11,12])
+	   R.AddRiskDriverDuration(3, 'riskrdiver_1', [10,11,12])
+	   R.AddRiskDriverDuration(4, 'riskrdiver_2', [10,11,12])
+	   R.AddRiskDriverDuration(5, 'riskrdiver_2', [10,11,12])
+	   R.AddRiskDriverDuration(6, 'riskrdiver_2', [10,11,12])
+	   R.PrintRiskTable() #dumps the risktable in json format
+	   R.GenerateTotalTimes() #generate durations based on the table
+	
+	"""
+	
 	def __init__(self, net):
 		self.riskdrivers = {}
 		self.net = net
@@ -1353,7 +1510,15 @@ class risktable:
 			self.table[q.GetID()] = {}
 
 	def AddRiskDriver(self, name, effectiveon = []):
+		'''
+		Adds a risk driver to the risktable
 		
+		Args: name (str), effectiveon (list)
+
+		Returns: sets self.riskdrivers[name] = effectiveon
+		
+		Raises:
+		'''
 		self.riskdrivers[name] = effectiveon
 
 	def Update(self):
@@ -1363,15 +1528,58 @@ class risktable:
 					self.table[e][w] = []
 
 	def AddRiskDriverDuration(self, ID, riskdriver, parameters):
+		'''
+		Adds quantification and assigns which activity the riskdriver impacts.  
+		The risk driver must first be created with .AddRiskDriver()
+		
+		Args: ID (int), riskdriver (str) parameters (list)
 
+		Returns: adds an impact on an activity with an effect
+			
+		Raises:
+		
+		In the example below riskdriver_1 has an effect on activity with ID=3 the effect is an additional duration
+		which is distributed triangulary with min=10, ml=11 and max=12
+		
+		ex::
+		
+		   R.AddRiskDriverDuration(3, 'riskrdiver_1', [10,11,12])
+		
+		'''
 		self.table[ID][riskdriver] = parameters
 
 	def PrintRiskTable(self):
-		print json.dumps(self.table, indent=10)
+		'''
+		Dumps the risktable to screen 
 		
+		Args: 
+
+		Returns: prints to screen in json format
+			
+		Raises:
+		'''
+		
+		print json.dumps(self.table, indent=10)
+
 		#pprint.pprint(self.table)
 
 	def GenerateTotalTimes(self):
+		'''
+		Generate activity durations based on the quantification of the risk table
+		
+		Args: 
+
+		Returns: dictionary
+			
+		Raises:
+		
+		In the example below a risk table R has allready been created
+		
+		ex::
+		
+		   R.GenerateTotalTimes() #generate durations based on the table
+		
+		'''
 		times = {}
 		for q in self.table:
 			totaltime = []
@@ -1469,3 +1677,4 @@ if __name__ == "__main__":
 	R.AddRiskDriverDuration(5, 'b', [10,11,12])
 	R.AddRiskDriverDuration(6, 'b', [10,11,12])
 	R.GenerateTotalTimes()
+	R.PrintRiskTable()

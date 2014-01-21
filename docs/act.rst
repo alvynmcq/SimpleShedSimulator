@@ -1,6 +1,6 @@
 
 .. automodule:: act
-   :members: activity, network
+   :members: activity, network, risktable
 
 
 
@@ -14,6 +14,12 @@ network - Create anetwork
 --------------------------
 
 .. autoclass:: network
+   :members: 
+
+risktable - Create a risktable
+------------------------------
+
+.. autoclass:: risktable
    :members: 
 
 Dependencies and additional modules
