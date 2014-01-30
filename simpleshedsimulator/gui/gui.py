@@ -462,7 +462,7 @@ class TabPanel(wx.Panel, wx.ListCtrl):
         if cla == True:
             self.axes.cla()
             self.axes.grid()
-        self.axes.hist(data, cumulative = True, bins = 25, normed=True)
+        self.axes.hist(data, cumulative = False, bins = 25, normed=True)
         self.canvas.draw()
     
     def FillListCtrl(self, activities):
