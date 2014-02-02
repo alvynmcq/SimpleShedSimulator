@@ -674,6 +674,9 @@ class network:
         self.today = datetime.date.today()
         self.IDs = []
         self.sortedby = ''
+        self.enddate = None
+        self.eddate_id = None
+        self.startdate = None
 
     def __UpdateIDs(self):
         
@@ -777,7 +780,7 @@ class network:
             Returns:
                 
             Raises:'''
-        self.__CalculateDates() #recalculate project dates
+        self.__ForwardPass() #recalculate project dates
         print "_____________________________________________________________"
 
         print str('ID').ljust(2),
@@ -823,9 +826,10 @@ class network:
         else:
             print "No activities assigend to network. Use the method AssignActivity()"
 
-    def __CalculateDates(self):
+    def __ForwardPass(self):
                 
-        '''Calculates the earliest starttimes for each activity.
+        '''Calculates the earliest starttimes for each activity. The 
+        method uses the forward pass algorithm to calculate the earliest start dates.
 
             Args:
 
@@ -836,9 +840,9 @@ class network:
         #Update links
         self.UpdateLinks
         
-        for i in self.IDs:
+        for ID in self.IDs:
             try:
-                P = self.dictionary[i].GetPredecesors() #predecesors for each activity i
+                P = self.dictionary[ID].GetPredecesors() #predecesors for each activity i
                 endtimes = []
             except KeyError:
                 continue
@@ -855,15 +859,62 @@ class network:
                         endtimes.append(self.dictionary[q].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
 
             except TypeError: #if no predecessor is found today is assumed
-                endtimes.append(self.today)
+                endtimes.append(self.today) #this should be the project start date
 
             try:
                 earliest_start_date = max(endtimes)  #max endtime equals earliest starttime
-                self.dictionary[i].AssignStart(earliest_start_date.year, 
+                self.dictionary[ID].AssignStart(earliest_start_date.year, 
                                                earliest_start_date.month,
                                                earliest_start_date.day) #assign earliest starttime
             except TypeError:
                 pass
+
+    def __BackwardPass(self):
+
+        '''Calculates the Latest starttimes for each activity. The 
+        method uses the backward pass algorithm to calculate the earliest start dates.
+
+            Args:
+
+            Returns:
+                Assigns new starttime according to logic in network
+            Raises:'''
+
+        #Update links
+        enddate = self.GetNetworkEnd()
+        self.UpdateLinks
+        self.IDs.reverse()
+        for ID in self.IDs:
+            endtimes = []
+            try:
+                suc = self.dictionary[ID].GetSuccsesors() #predecesors for each activity i
+            except KeyError:
+                continue
+            #handeling of Succsesors
+            try:
+                for q in suc:
+                    if IntToStr(q) in ['fs','FS','Fs','fS']:
+                        try:
+                            endtimes.append(self.dictionary[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's predeccesors
+                        except KeyError: 
+                            continue
+                    else:
+                        q = int(q) #FS condition assumed
+                        endtimes.append(self.dictionary[q].Getstart(asobject=True)) #endtimes for activity i's predeccesors
+
+            except TypeError: #if no succsessor is found today is assumed
+                endtimes.append(enddate)
+
+            try:
+                duration = datetime.timedelta(days=self.dictionary[ID].GetDuration())
+                earliest_start_date = min(endtimes) - duration  #max endtime equals earliest starttime
+                #print earliest_start_date, ID
+                self.dictionary[ID].AssignStart(earliest_start_date.year, 
+                                               earliest_start_date.month,
+                                               earliest_start_date.day) #assign earliest starttime
+            except (TypeError, ValueError):
+                pass
+        self.IDs.reverse()
 
     def CalculateFreeFloats(self):
         '''
@@ -872,7 +923,7 @@ class network:
         '''
         #Update links and dates
         self.UpdateLinks
-        self.__CalculateDates
+        self.__ForwardPass
         
         for i in self.IDs:
             try:
@@ -973,59 +1024,21 @@ class network:
         return [x for x in critical_path if x is not None] #removes None values
 
     def CalculateTotalFloats(self):
-        self.CalculateFreeFloats()
-        critical_path = self.GetCriticalPath()
-        activities = [ID for ID in self.GetNetworkIDDict()]
-        non_critical_activities = [x for x in activities if x not in critical_path]
-        non_critical_activities_copy = list(non_critical_activities)
+        '''calculates the total floats and assigns that float to corresponding activity'''
+
+        self.__ForwardPass()
+        early_starts = [q.GetStart(asobject=True) for q in self.GetActivities()]
         
-        #first those in the critical path
-        for q in self.activities:
-            if StrToInt(q.GetID()) in critical_path: q.SetSlack(0, free=False)
+        self.__BackwardPass()
+        late_starts = [q.GetStart(asobject=True) for q in self.GetActivities()]
         
-        def SlackSetter(non_critical_activities_copy):
-
-            tmp = []
-            for ID in non_critical_activities_copy:
-                
-                end = self.dictionary[ID].GetEnd(asobject = True)
-                starts = {}
-                try:
-                    for suc in self.dictionary[ID].GetSuccsesors():
-                            starts[suc] =self.dictionary[StrToInt(suc)].GetStart(asobject = True)
-                except TypeError:
-                    continue
-                
-                true_successor = [StrToInt(q) for q in starts.keys() if starts[q]== end]
-
-                if len(true_successor) > 0:
-                    if set(true_successor) <= set(non_critical_activities_copy):
-                        tmp.append(true_successor[0])
-                        tmp.append(ID)
-
-            try:
-                max_free_slack = max([self.dictionary[ID].GetSlack(free=True) for ID in set(tmp)])
-                
-                for ID in set(tmp):
-                    self.dictionary[ID].SetSlack(max_free_slack,free=False)
-                
-                global diff
-                diff = set(non_critical_activities_copy) - set(tmp) 
-
-            except:
-                
-                for ID in non_critical_activities_copy:
-                    totalslack = self.dictionary[ID].GetSlack(free=True)
-                    self.dictionary[ID].SetSlack(totalslack,free=False)
-                
-                global diff
-                diff = set(non_critical_activities_copy) - set(non_critical_activities_copy) 
-
-        SlackSetter(non_critical_activities_copy)
-        while len(diff) > 0:
-            print diff
-            SlackSetter(diff)
-            print diff
+        ID = [q.GetID() for q in self.GetActivities()]
+         
+        for ls, es, i in zip(late_starts,early_starts, ID):
+            slack = (ls-es).days
+            self.dictionary[i].SetSlack(slack,free=False)
+        
+        self.__ForwardPass()
 
     def CalculatePathDuration(self, path):
         durations = []
@@ -1045,19 +1058,21 @@ class network:
                 Returns a dattimeobject or a list 
             Raises:'''
         
-        #This should be updated to search throug thos activities which onlye has None Succsessors   
-        self.__CalculateDates() #recalculate project dates
+        #This should be updated to search throug those activities which only has None Succsessors   
+        self.__ForwardPass() #recalculate project dates
         if return_ID == False:
             enddates = []
             for q in self.activities:
                 enddates.append(q.GetEnd(asobject))
-            return max(enddates)
+            self.enddate = max(enddates)
+            return self.enddate
 
         else:
             enddates = {}
             for q in self.activities:
                 enddates[q.GetID()] = q.GetEnd(asobject)
-            return max(enddates, key=enddates.get)
+            self.enddate_id = max(enddates, key=enddates.get)
+            return self.enddate_id
 
     def GetNetworkStart(self, asobject=True):
         
@@ -1068,11 +1083,12 @@ class network:
             Returns:
                 Returns a dattimeobject or a list 
             Raises:'''
-            
-        self.__CalculateDates() #recalculate project dates
-        
-        last_activity_ID = len(self.dictionary)
-        return self.dictionary[1].GetStart(asobject)
+        starts = []
+        for activity in self.GetActivities():
+            starts.append(activity.GetStart(asobject=True))
+
+        self.startdate = min(starts)
+        return self.startdate
 
     def Simulate(self, n=10, WriteToDB=True, DbName="Simulation_variates.db", RiskTable = None):
         
@@ -1137,7 +1153,7 @@ class network:
                         q.AssignDuration(T)
                     except AttributeError:
                         continue
-                self.__CalculateDates()
+                self.__ForwardPass()
                 #Only initiate if you want to write resukts to db
                 if WriteToDB == True:
                     #Every endate for each activity is here:
@@ -1147,8 +1163,7 @@ class network:
                         try:
                             duration = q.GetEnd(asobject=True)-self.GetNetworkStart(asobject=True)
                             enddates.append(duration.days)
-                            critical = q.GetSlack()
-                            print critical, "hhhhhhhh"
+                            critical = q.GetSlack(free=False)
                             criticality.append(critical)
                         
                         except AttributeError:
@@ -1173,7 +1188,7 @@ class network:
                 T = RiskTable.GenerateTotalTimes() #this is a dict on the form {'ID':totaltime}
                 for ID in T:
                     self.GetNetworkIDDict()[ID].AssignDuration(T[ID]) #activityinstance
-                self.__CalculateDates()
+                self.__ForwardPass()
 
                 #Only initiate if you want to write resukts to db
                 if WriteToDB == True:
@@ -1418,7 +1433,7 @@ class network:
         Raises:
         '''
          
-        self.__CalculateDates() #recalculate project dates
+        self.__ForwardPass() #recalculate project dates
         
         output = open(path, 'w')
         
@@ -1494,6 +1509,9 @@ class network:
             except:
                 pass
             self.AddActivity(a)
+
+
+
 
 class risktable:
     """
@@ -1627,6 +1645,7 @@ class risktable:
 
 
 
+
 if __name__ == "__main__":
     a = activity()
     a.AssignID(1)
@@ -1640,7 +1659,7 @@ if __name__ == "__main__":
 
     c = activity()
     c.AssignID(3)
-    c.AssignDuration(15)
+    c.AssignDuration(45)
 
     d = activity()
     d.AssignID(4)
@@ -1660,12 +1679,12 @@ if __name__ == "__main__":
 
     g = activity()
     g.AssignID(7)
-    g.AssignDuration(15)
+    g.AssignDuration(10)
     g.AssignPredecesors(6,2,1)
     
     h = activity()
     h.AssignID(8)
-    h.AssignDuration(12)
+    h.AssignDuration(10)
     h.AssignPredecesors(6)
     
     i = activity()
@@ -1683,13 +1702,13 @@ if __name__ == "__main__":
     P.AddActivity(a,b,c,d,e,f,g,h,i,j)
 
     
-    
-    P.CalculateTotalFloats()
-    print P.GetCriticalPath()
-    
-    for activity in P.GetActivities():
-        print activity.GetSlack(free=False)
+
     
     
     P.PrintNetwork()
+    P.CalculateTotalFloats()
+    for q in P.GetActivities():
+        print q.GetID(), q.GetSlack(free=False)
     P.PlotGantt()
+    
+
