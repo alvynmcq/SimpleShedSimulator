@@ -93,6 +93,7 @@ def beta(s,d):
 
 def percentile(N, percent, key=lambda x:x):
     '''Calculates the percentile value'''
+    N.sort()
     k = (len(N)-1) * percent
     floor = math.floor(k)
     ceil = math.ceil(k)
