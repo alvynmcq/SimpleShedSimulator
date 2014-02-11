@@ -91,10 +91,8 @@ def beta(s,d):
     else:
         return cov(s,d)/var(s)
 
-def percentile(N, percent, key=lambda x:x):
+def percentile(percent, key=lambda x:x):
 
-    if not N:
-        return None
     k = (len(N)-1) * percent
     f = math.floor(k)
     c = math.ceil(k)
