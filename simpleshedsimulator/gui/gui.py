@@ -717,7 +717,6 @@ class Panel(wx.Panel):
         #Getting id and variates
         CurrentRow = event.m_itemIndex
         Id = int(self.list_ctrl.GetItem(CurrentRow,0).GetText())
-        Id = "ID" + str(Id) 
         
         data = self.project.GetSimulationVariates(ID = Id, DbName=self.dbfile)
        
@@ -763,51 +762,6 @@ class Panel(wx.Panel):
         self.WriteNetworkToGUI(event, self.project)
 
     def OnSelected(self, event):
-        #CurrentColumn = int(event.GetColumn())
-        #CurrentRow = event.m_itemIndex
-        #ID = int(self.list_ctrl.GetItem(CurrentRow,0).GetText())
-        #Activitydict = self.project.GetNetworkIDDict()
-        #print ID, CurrentColumn, CurrentRow, "<-"
-        ##update
-        #value_to_replace = event.GetText()
-        #print value_to_replace, "hhhh"
-        #if CurrentColumn == 0:
-            #Activitydict[ID].AssignID(int(value_to_replace))
-        
-        #elif CurrentColumn == 1:
-            #Activitydict[ID].AssignName(str(value_to_replace))
-
-        #elif CurrentColumn == 2:
-            #start = re.split('; |, |-|\n',str(value_to_replace))
-            #Activitydict[ID].AssignStart(int(start[0]),int(start[1]),int(start[2]))
-
-        #elif CurrentColumn == 3:
-            #end = re.split('; |, |-|\n',str(value_to_replace))
-            #Activitydict[ID].AssignEnd(int(end[0]),int(end[1]),int(end[2]))
-
-        #elif CurrentColumn == 4:
-            #Activitydict[ID].AssignDuration(int(value_to_replace))
-            
-        #elif CurrentColumn == 5:
-            #suc = [str(q) for q in re.split('; |, |-|\n|,|;',str(value_to_replace))]
-            #print suc, "jjjjjjjjjjjjjjjjjjjjjjjjjjjj"
-            #Activitydict[ID].AssignSuccsesors(*suc)
-            #self.project.UpdateLinks()
-
-        #elif CurrentColumn == 6:
-            #pre = [str(q) for q in re.split('; |, |-|\n|,|;',str(value_to_replace))]
-            #Activitydict[ID].AssignPredecesors(*pre)
-            #self.project.UpdateLinks()
-
-            
-        #elif CurrentColumn == 7:
-            #Activitydict[ID].SetDurationRangeMin(int(value_to_replace))
-        
-        #elif CurrentColumn == 8:
-            #Activitydict[ID].SetDurationRangeML(int(value_to_replace))
-        
-        #elif CurrentColumn == 9:
-            #Activitydict[ID].SetDurationRangeMax(int(value_to_replace))
 
         self.GetFromGui(event)
         self.project.UpdateLinks()

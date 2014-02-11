@@ -5,7 +5,7 @@ import sqlite3 as lite
 import json
 import pprint
 import os
-
+import stats
 
 try:
     from triangular import triang
@@ -19,6 +19,7 @@ import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num
 from matplotlib import dates
+
 
 
 
@@ -781,30 +782,48 @@ class network:
                 
             Raises:'''
         self.__ForwardPass() #recalculate project dates
-        print "_____________________________________________________________"
 
+        print "______________________________________________________________________________________________"
         print str('ID').ljust(2),
         #print str('Name').ljust(9),
         print str('Start').ljust(15),
-        print str('End').ljust(9),
-        print str('Duration').ljust(7),
-        print str('Succsesors').ljust(15),
+        print str('End').ljust(12),
+        print str('Duration').ljust(12),
+        print str('Tot. Slack').ljust(12),
+        print str('Succsesors').ljust(25),
         print str('Predecesors').ljust(7)
+        print "----------------------------------------------------------------------------------------------"
         for i in self.IDs:
             try:
                 print str(self.dictionary[i].GetID()).ljust(2),
                 #print str(self.dictionary[i].GetName()).ljust(9),
                 print str(self.dictionary[i].GetStart(asobject=True)).ljust(15),
-                print str(self.dictionary[i].GetEnd(asobject=True)).ljust(9),
-                print str(self.dictionary[i].GetDuration()).ljust(7),
-                print str(self.dictionary[i].GetSuccsesors()).ljust(15),
+                print str(self.dictionary[i].GetEnd(asobject=True)).ljust(12),
+                print str(self.dictionary[i].GetDuration()).ljust(12),
+                print str(self.dictionary[i].GetSlack()).ljust(12),
+                print str(self.dictionary[i].GetSuccsesors()).ljust(25),
                 print str(self.dictionary[i].GetPredecesors()).ljust(7)
         
             except KeyError:
                 continue
             
-        print "_____________________________________________________________"
-
+        print "______________________________________________________________________________________________\n"
+        print "\n\n"
+        print "OTHER INFORMATION:"
+        print "-----------------"
+        print str('Total Duration:').ljust(15), (self.GetNetworkEnd()-self.GetNetworkStart()).days
+        print str('Critical Path:').ljust(15), self.GetCriticalPath()
+        print "\n"
+        print "SIMULATION RESULTS:"
+        print "-----------------"
+        I = self.GetNetworkEnd(return_ID=True)
+        print str('E(x):').ljust(15), self.GetSimulationMean(I)
+        print str('P10:').ljust(15), self.GetSimulationPercentile(I, 0.1)
+        print str('P50:').ljust(15), self.GetSimulationPercentile(I, 0.5)
+        print str('P90:').ljust(15), self.GetSimulationPercentile(I, 0.9)
+        print str('Var:').ljust(15), stats.var(self.GetSimulationVariates(ID = I))
+    
+    
     def GetName(self):
                 
         '''Returns the name of the network
@@ -1121,7 +1140,7 @@ class network:
                 db_string = db_string + "ID" + str(q.GetID()) + " TEXT" +  ", " 
             db_string_dates =  "CREATE TABLE SimulationResults(" +  db_string[:-2] + ")"  
             db_string_critical =  "CREATE TABLE SimulationResults_critical(" +  db_string[:-2] + ")"  
-            print db_string_critical
+
             #Creating database
             con = lite.connect(DbName)
             cur = con.cursor()
@@ -1219,7 +1238,7 @@ class network:
         con.commit()
         con.close()
 
-    def GetSimulationVariates(self,DbName="Simulation_variates.db", ID = "ID1", table="SimulationResults"):
+    def GetSimulationVariates(self,DbName="Simulation_variates.db", ID = 1, table="SimulationResults"):
         
         '''Returns the simulated variates from the simulation
 
@@ -1229,7 +1248,7 @@ class network:
             Returns:
                 Returns a list consisting of integers. (days from project start to activity finish)
             Raises:'''
-        
+        ID = "ID" + str(ID)
         try:
             con = lite.connect(DbName)
             cur = con.cursor()
@@ -1238,7 +1257,14 @@ class network:
             return [int(i[0]) for i in cur.fetchall()]
         except:
             raise AttributeError('Could not find database file')
+    
+    def GetSimulationMean(self, I):
+        return stats.mean(self.GetSimulationVariates(ID = I))
 
+    def GetSimulationPercentile(self, I, p):
+        variates = self.GetSimulationVariates(ID = I) 
+        return stats.percentile(variates, p)
+        
     def PlotHistEnd(self, cumulative = False, bins=20, normed = True):
         
         '''Plots the network enddate as a histogram (currently uses Matplotlib). 
@@ -1395,7 +1421,6 @@ class network:
                 names.append(str(self.dictionary[StrToInt(ID)].GetName()))
             else:
                 names.append(str(ID))
-
 
         plt.yticks(self.IDs)
         plt.gca().set_yticklabels(names)
@@ -1691,12 +1716,13 @@ if __name__ == "__main__":
     i.AssignID(9)
     i.AssignDuration(5)
     i.AssignPredecesors(7,8)
+    i.SetDurationRange(min=1, ml=5,max=20)
 
     j = activity()
     j.AssignID(10)
     j.AssignDuration(5)
     j.AssignPredecesors(2)
-    #j.AssignSuccsesors(9)
+
 
     P = network()
     P.AddActivity(a,b,c,d,e,f,g,h,i,j)
@@ -1704,11 +1730,12 @@ if __name__ == "__main__":
     
 
     
-    
-    P.PrintNetwork()
     P.CalculateTotalFloats()
-    for q in P.GetActivities():
-        print q.GetID(), q.GetSlack(free=False)
-    P.PlotGantt()
+    
+    P.Simulate(n=1000)
+    P.PrintNetwork()
+    #P.PlotGantt()
+    
+
     
 
