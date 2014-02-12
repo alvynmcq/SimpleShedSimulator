@@ -395,7 +395,7 @@ class activity:
         try:
             return self.name
         except AttributeError:
-            print None
+            pass
 
     def GetID(self):
         
@@ -662,7 +662,7 @@ class network:
        P.PrintNetwork()
        P.CalculateTotalFloats()
 
-       for q in P.GetActivities():
+       for q in P:
            print q.GetID(), q.GetSlack()
 
        P.PlotGantt()
@@ -678,6 +678,10 @@ class network:
         self.enddate = None
         self.eddate_id = None
         self.startdate = None
+
+    def __iter__(self):
+        for activity in self.activities:
+             yield activity
 
     def __UpdateIDs(self):
         
@@ -788,10 +792,13 @@ class network:
         #print str('Name').ljust(9),
         print str('Start').ljust(15),
         print str('End').ljust(12),
-        print str('Duration').ljust(12),
-        print str('Tot. Slack').ljust(12),
-        print str('Succsesors').ljust(25),
-        print str('Predecesors').ljust(7)
+        print str('Duration').ljust(10),
+        print str('Min').ljust(5),
+        print str('ML').ljust(5),
+        print str('Max').ljust(8),
+        print str('Slack').ljust(9),
+        print str('Succsesors').ljust(25)
+        #print str('Predecesors').ljust(7)
         print "----------------------------------------------------------------------------------------------"
         for i in self.IDs:
             try:
@@ -799,10 +806,13 @@ class network:
                 #print str(self.dictionary[i].GetName()).ljust(9),
                 print str(self.dictionary[i].GetStart(asobject=True)).ljust(15),
                 print str(self.dictionary[i].GetEnd(asobject=True)).ljust(12),
-                print str(self.dictionary[i].GetDuration()).ljust(12),
-                print str(self.dictionary[i].GetSlack()).ljust(12),
-                print str(self.dictionary[i].GetSuccsesors()).ljust(25),
-                print str(self.dictionary[i].GetPredecesors()).ljust(7)
+                print str(self.dictionary[i].GetDuration()).ljust(10),
+                print str(self.dictionary[i].GetDurationRangeMin()).ljust(5),
+                print str(self.dictionary[i].GetDurationRangeML()).ljust(5),
+                print str(self.dictionary[i].GetDurationRangeMax()).ljust(8),
+                print str(self.dictionary[i].GetSlack()).ljust(9),
+                print str(self.dictionary[i].GetSuccsesors()).ljust(25)
+                #print str(self.dictionary[i].GetPredecesors()).ljust(7)
         
             except KeyError:
                 continue
@@ -811,19 +821,21 @@ class network:
         print "\n\n"
         print "OTHER INFORMATION:"
         print "-----------------"
-        print str('Total Duration:').ljust(15), (self.GetNetworkEnd()-self.GetNetworkStart()).days
+        print str('Deterministic Duration:').ljust(15), (self.GetNetworkEnd()-self.GetNetworkStart()).days
+        print str('Deterministic Finish:').ljust(15), self.GetNetworkEnd()
         print str('Critical Path:').ljust(15), self.GetCriticalPath()
         print "\n"
         print "SIMULATION RESULTS:"
         print "-----------------"
-        I = self.GetNetworkEnd(return_ID=True)
-        print str('E(x):').ljust(15), self.GetSimulationMean(I)
-        print str('P10:').ljust(15), self.GetSimulationPercentile(I, 0.1)
-        print str('P50:').ljust(15), self.GetSimulationPercentile(I, 0.5)
-        print str('P90:').ljust(15), self.GetSimulationPercentile(I, 0.9)
-        print str('Var:').ljust(15), stats.var(self.GetSimulationVariates(ID = I))
-    
-    
+        end_id = self.GetNetworkEnd(return_ID=True)
+        start = self.GetNetworkStart(asobject=True)
+        mean = self.GetSimulationMean(end_id)
+        print str('E(x):').ljust(15), self.GetSimulationMean(end_id),  start + datetime.timedelta(mean)
+        print str('P10:').ljust(15), self.GetSimulationPercentile(end_id, 0.1), self.GetSimulationPercentile(end_id, 0.1, date=True)
+        print str('P50:').ljust(15), self.GetSimulationPercentile(end_id, 0.5), self.GetSimulationPercentile(end_id, 0.5, date=True)
+        print str('P90:').ljust(15), self.GetSimulationPercentile(end_id, 0.9), self.GetSimulationPercentile(end_id, 0.9, date=True)
+        print str('Var:').ljust(15), stats.var(self.GetSimulationVariates(ID = end_id))
+
     def GetName(self):
                 
         '''Returns the name of the network
@@ -1046,12 +1058,12 @@ class network:
         '''calculates the total floats and assigns that float to corresponding activity'''
 
         self.__ForwardPass()
-        early_starts = [q.GetStart(asobject=True) for q in self.GetActivities()]
+        early_starts = [q.GetStart(asobject=True) for q in self]
         
         self.__BackwardPass()
-        late_starts = [q.GetStart(asobject=True) for q in self.GetActivities()]
+        late_starts = [q.GetStart(asobject=True) for q in self]
         
-        ID = [q.GetID() for q in self.GetActivities()]
+        ID = [q.GetID() for q in self]
          
         for ls, es, i in zip(late_starts,early_starts, ID):
             slack = (ls-es).days
@@ -1103,7 +1115,7 @@ class network:
                 Returns a dattimeobject or a list 
             Raises:'''
         starts = []
-        for activity in self.GetActivities():
+        for activity in self:
             starts.append(activity.GetStart(asobject=True))
 
         self.startdate = min(starts)
@@ -1261,10 +1273,18 @@ class network:
     def GetSimulationMean(self, I):
         return stats.mean(self.GetSimulationVariates(ID = I))
 
-    def GetSimulationPercentile(self, I, p):
+    def GetSimulationPercentile(self, I, p, date=False):
         variates = self.GetSimulationVariates(ID = I) 
-        return stats.percentile(variates, p)
+        variate = stats.percentile(variates, p)
         
+        if date == True:
+            
+            return self.GetNetworkStart(asobject = True) + datetime.timedelta(variate)
+        
+        elif date == False:
+            
+            return int(variate)
+    
     def PlotHistEnd(self, cumulative = False, bins=20, normed = True):
         
         '''Plots the network enddate as a histogram (currently uses Matplotlib). 
@@ -1335,7 +1355,7 @@ class network:
         self.dictionary[ID].IncrementID(increment, ID=False) #Increment Succsessors to activity ID asswell
 
         #dont forget to update the idlist:
-        self.IDs = [q.GetID() for q in self.GetActivities()]
+        self.IDs = [q.GetID() for q in self]
 
     def InsertActivity(self, ID):
         '''
@@ -1377,7 +1397,7 @@ class network:
         self.sortedby = sorton
 
         #dont forget to update the idlist:
-        self.IDs = [q.GetID() for q in self.GetActivities()]
+        self.IDs = [q.GetID() for q in self]
 
     def PlotGantt(self):
 
@@ -1578,7 +1598,7 @@ class risktable:
         self.riskdrivers = {}
         self.net = net
         self.table = {}
-        for q in self.net.GetActivities():
+        for q in self.net:
             self.table[q.GetID()] = {}
 
     def AddRiskDriver(self, name, effectiveon = []):
@@ -1696,27 +1716,31 @@ if __name__ == "__main__":
     e.AssignID(5)
     e.AssignDuration(3)
     e.AssignPredecesors(3,4)
+    e.SetDurationRange(min=0, ml=0,max=3)
 
     f = activity()
     f.AssignID(6)
     f.AssignDuration(8)
     f.AssignPredecesors(5)
+    f.SetDurationRange(min=1, ml=8,max=8)
 
     g = activity()
     g.AssignID(7)
     g.AssignDuration(10)
     g.AssignPredecesors(6,2,1)
+    g.SetDurationRange(min=1, ml=4,max=10)
     
     h = activity()
     h.AssignID(8)
     h.AssignDuration(10)
     h.AssignPredecesors(6)
+    h.SetDurationRange(min=3, ml=7,max=23)
     
     i = activity()
     i.AssignID(9)
-    i.AssignDuration(5)
+    i.AssignDuration(10)
     i.AssignPredecesors(7,8)
-    i.SetDurationRange(min=1, ml=5,max=20)
+    i.SetDurationRange(min=3, ml=7,max=50)
 
     j = activity()
     j.AssignID(10)
@@ -1734,8 +1758,10 @@ if __name__ == "__main__":
     
     P.Simulate(n=1000)
     P.PrintNetwork()
-    #P.PlotGantt()
+    P.PlotGantt()
+
     
+ 
 
     
 

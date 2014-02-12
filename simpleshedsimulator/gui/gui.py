@@ -641,7 +641,7 @@ class Panel(wx.Panel):
 
         self.project.AddActivity(*self.activities)
         
-        names = [q.GetName() for q in self.project.GetActivities()]
+        names = [q.GetName() for q in self.project]
 
     def SaveFileAs(self, event):
         
@@ -657,7 +657,7 @@ class Panel(wx.Panel):
     def WriteNetworkToGUI(self, event, p):
         self.list_ctrl.DeleteAllItems()
         self.index = 0
-        for q in p.GetActivities():
+        for q in p:
 
             self.list_ctrl.InsertStringItem(self.index, str(q.GetID()))
             self.list_ctrl.SetStringItem(self.index,1, str(q.GetName()))
