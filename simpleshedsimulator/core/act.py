@@ -6,11 +6,7 @@ import json
 import pprint
 import os
 import stats
-
-try:
-    from triangular import triang
-except:
-    print "Could not find module for simulation"
+from triangular import triang
 
 #plotting with matplotlib:
 import numpy as np
@@ -683,6 +679,18 @@ class network:
         for activity in self.activities:
              yield activity
 
+    def __getitem__(self, ID):
+        return self.dictionary[ID]
+
+    def __len__(self):
+        return len(self.activities)
+
+    def SetDictionary(self):
+        d = []
+        for activity in self.activities:
+            d.append( (activity.GetID(),activity) )
+        self.dictionary = dict(d)
+
     def __UpdateIDs(self):
         
         self.IDs = []
@@ -714,7 +722,7 @@ class network:
             Sets self.activities and updatelinks
         Raises:'''
         
-        initial_number_of_activities = len(self.activities)
+        initial_number_of_activities = len(self)
         
         #Make sure one does not add the same activity
         for i in range(0,len(args)):
@@ -728,27 +736,24 @@ class network:
         self.__UpdateIDs()
         
         #Update links
-        number_of_activities = len(self.activities)
+        number_of_activities = len(self)
         if number_of_activities > initial_number_of_activities:
             self.UpdateLinks()
 
     def UpdateLinks(self):
-        d = []
-        for activity in self.activities:
-            d.append( (activity.GetID(),activity) )
-        self.dictionary = dict(d)
+        self.SetDictionary()
         for q in self.dictionary:
             try:
                 a =1
-                for w in self.dictionary[q].GetSuccsesors():
+                for w in self[q].GetSuccsesors():
                     
                     if IntToStr(w) in ['fs','FS','Fs','fS']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
-                        self.dictionary[ww].AssignPredecesors(qq)
+                        self[ww].AssignPredecesors(qq)
                     else:
                         w = StrToInt(w)
-                        self.dictionary[w].AssignPredecesors(int(q))
+                        self[w].AssignPredecesors(int(q))
             except:
                 continue
                 
@@ -756,14 +761,14 @@ class network:
         for q in self.dictionary:
             try:
 
-                for w in self.dictionary[q].GetPredecesors():
+                for w in self[q].GetPredecesors():
                     if IntToStr(w) in ['fs','FS','Fs','fS']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
-                        self.dictionary[ww].AssignSuccsesors(qq)
+                        self[ww].AssignSuccsesors(qq)
                     else:
                         w = StrToInt(w)
-                        self.dictionary[w].AssignSuccsesors(int(q))
+                        self[w].AssignSuccsesors(int(q))
                         
             except:
                 pass
@@ -802,17 +807,17 @@ class network:
         print "----------------------------------------------------------------------------------------------"
         for i in self.IDs:
             try:
-                print str(self.dictionary[i].GetID()).ljust(2),
-                #print str(self.dictionary[i].GetName()).ljust(9),
-                print str(self.dictionary[i].GetStart(asobject=True)).ljust(15),
-                print str(self.dictionary[i].GetEnd(asobject=True)).ljust(12),
-                print str(self.dictionary[i].GetDuration()).ljust(10),
-                print str(self.dictionary[i].GetDurationRangeMin()).ljust(5),
-                print str(self.dictionary[i].GetDurationRangeML()).ljust(5),
-                print str(self.dictionary[i].GetDurationRangeMax()).ljust(8),
-                print str(self.dictionary[i].GetSlack()).ljust(9),
-                print str(self.dictionary[i].GetSuccsesors()).ljust(25)
-                #print str(self.dictionary[i].GetPredecesors()).ljust(7)
+                print str(self[i].GetID()).ljust(2),
+                #print str(self[i].GetName()).ljust(9),
+                print str(self[i].GetStart(asobject=True)).ljust(15),
+                print str(self[i].GetEnd(asobject=True)).ljust(12),
+                print str(self[i].GetDuration()).ljust(10),
+                print str(self[i].GetDurationRangeMin()).ljust(5),
+                print str(self[i].GetDurationRangeML()).ljust(5),
+                print str(self[i].GetDurationRangeMax()).ljust(8),
+                print str(self[i].GetSlack()).ljust(9),
+                print str(self[i].GetSuccsesors()).ljust(25)
+                #print str(self[i].GetPredecesors()).ljust(7)
         
             except KeyError:
                 continue
@@ -852,7 +857,7 @@ class network:
             print "No name assigend. Use the method AssignName()"
 
     def GetActivities(self):
-        if len(self.activities)>0:
+        if len(self)>0:
             return self.activities
         else:
             print "No activities assigend to network. Use the method AssignActivity()"
@@ -873,7 +878,7 @@ class network:
         
         for ID in self.IDs:
             try:
-                P = self.dictionary[ID].GetPredecesors() #predecesors for each activity i
+                P = self[ID].GetPredecesors() #predecesors for each activity i
                 endtimes = []
             except KeyError:
                 continue
@@ -887,14 +892,14 @@ class network:
                             continue
                     else:
                         q = int(q) #FS condition assumed
-                        endtimes.append(self.dictionary[q].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
+                        endtimes.append(self[q].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
 
             except TypeError: #if no predecessor is found today is assumed
                 endtimes.append(self.today) #this should be the project start date
 
             try:
                 earliest_start_date = max(endtimes)  #max endtime equals earliest starttime
-                self.dictionary[ID].AssignStart(earliest_start_date.year, 
+                self[ID].AssignStart(earliest_start_date.year, 
                                                earliest_start_date.month,
                                                earliest_start_date.day) #assign earliest starttime
             except TypeError:
@@ -918,7 +923,7 @@ class network:
         for ID in self.IDs:
             endtimes = []
             try:
-                suc = self.dictionary[ID].GetSuccsesors() #predecesors for each activity i
+                suc = self[ID].GetSuccsesors() #predecesors for each activity i
             except KeyError:
                 continue
             #handeling of Succsesors
@@ -926,21 +931,21 @@ class network:
                 for q in suc:
                     if IntToStr(q) in ['fs','FS','Fs','fS']:
                         try:
-                            endtimes.append(self.dictionary[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's predeccesors
+                            endtimes.append(self[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's predeccesors
                         except KeyError: 
                             continue
                     else:
                         q = int(q) #FS condition assumed
-                        endtimes.append(self.dictionary[q].Getstart(asobject=True)) #endtimes for activity i's predeccesors
+                        endtimes.append(self[q].Getstart(asobject=True)) #endtimes for activity i's predeccesors
 
             except TypeError: #if no succsessor is found today is assumed
                 endtimes.append(enddate)
 
             try:
-                duration = datetime.timedelta(days=self.dictionary[ID].GetDuration())
+                duration = datetime.timedelta(days=self[ID].GetDuration())
                 earliest_start_date = min(endtimes) - duration  #max endtime equals earliest starttime
                 #print earliest_start_date, ID
-                self.dictionary[ID].AssignStart(earliest_start_date.year, 
+                self[ID].AssignStart(earliest_start_date.year, 
                                                earliest_start_date.month,
                                                earliest_start_date.day) #assign earliest starttime
             except (TypeError, ValueError):
@@ -958,7 +963,7 @@ class network:
         
         for i in self.IDs:
             try:
-                S = self.dictionary[i].GetSuccsesors() #predecesors for each activity i
+                S = self[i].GetSuccsesors() #predecesors for each activity i
                 starttimes = []
             except KeyError:
                 continue
@@ -967,20 +972,20 @@ class network:
                 for q in S:
                     if IntToStr(q) in ['fs','FS','Fs','fS']:
                         try:
-                            starttimes.append(self.dictionary[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's succesors
+                            starttimes.append(self[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's succesors
                         except KeyError:
                             continue
                     else:
                         q = int(q) #FS condition assumed
-                        starttimes.append(self.dictionary[q].GetStart(asobject=True)) #endtimes for activity i's predeccesors
+                        starttimes.append(self[q].GetStart(asobject=True)) #endtimes for activity i's predeccesors
 
             except TypeError: #if no predecessor is found today is assumed
                 starttimes.append(self.today)
             try:
                 earlist_predesecor_starttime = min(starttimes)
-                free_slack =  earlist_predesecor_starttime - self.dictionary[i].GetEnd(asobject=True)
+                free_slack =  earlist_predesecor_starttime - self[i].GetEnd(asobject=True)
 
-                self.dictionary[i].SetSlack(free_slack, free = True)
+                self[i].SetSlack(free_slack, free = True)
             except:
                 pass
 
@@ -1001,7 +1006,7 @@ class network:
             def getsuccessors(ID):
                 try:
                     path = {}
-                    for q in self.dictionary[StrToInt(ID)].GetSuccsesors():
+                    for q in self[StrToInt(ID)].GetSuccsesors():
                         path[StrToInt(q)] = getsuccessors(StrToInt(q))
                     return path
                 except TypeError:
@@ -1013,7 +1018,7 @@ class network:
             def getpredecessors(ID):
                 try:
                     path = {}
-                    for q in self.dictionary[StrToInt(ID)].GetPredecesors():
+                    for q in self[StrToInt(ID)].GetPredecesors():
                         path[StrToInt(q)] = getpredecessors(StrToInt(q))
                     
                     return path
@@ -1067,7 +1072,7 @@ class network:
          
         for ls, es, i in zip(late_starts,early_starts, ID):
             slack = (ls-es).days
-            self.dictionary[i].SetSlack(slack,free=False)
+            self[i].SetSlack(slack,free=False)
         
         self.__ForwardPass()
 
@@ -1075,7 +1080,7 @@ class network:
         durations = []
         for ID in path:
             if ID is not None:
-                durations.append(self.dictionary[ID].GetDuration())
+                durations.append(self[ID].GetDuration())
         
         return sum(durations)
 
@@ -1314,7 +1319,7 @@ class network:
         for i in self.IDs:
             try:
                 if i > ID:
-                    self.dictionary[i].IncrementID(increment) 
+                    self[i].IncrementID(increment) 
                 else:
                     continue
             except KeyError:
@@ -1323,14 +1328,14 @@ class network:
         #Updates those predecesors which id is bigger than ID 
         for i in self.IDs:
                     try:
-                        for pre in self.dictionary[i].GetPredecesors():
+                        for pre in self[i].GetPredecesors():
                             IncrementedValues = []
                             #Checks which predecessors are bigger than the IDs and increment
                             if StrToInt(pre) > ID: 
-                                self.dictionary[i].P.remove(pre) #Remove element
+                                self[i].P.remove(pre) #Remove element
                                 condition = IntToStr(pre) 
                                 IncrementedValues.append(str(StrToInt(pre) + increment) + condition) #Adds an incremented ID
-                        self.dictionary[i].P = self.dictionary[i].P + IncrementedValues #Adds an incremented ID to initial list P
+                        self[i].P = self[i].P + IncrementedValues #Adds an incremented ID to initial list P
     
                     except TypeError:
                         continue
@@ -1338,21 +1343,21 @@ class network:
         #Updates successros which id is bigger than ID 
         for i in self.IDs:
                     try:
-                        for suc in self.dictionary[i].GetSuccsesors():
+                        for suc in self[i].GetSuccsesors():
                             IncrementedValues = []
                             #Checks which successros are bigger than the IDs and increment
                             if StrToInt(suc) > ID:
-                                if self.dictionary[i].GetID() < ID:
-                                    self.dictionary[i].S.remove(suc) #Remove element
+                                if self[i].GetID() < ID:
+                                    self[i].S.remove(suc) #Remove element
                                     condition = IntToStr(suc) 
                                     IncrementedValues.append(str(StrToInt(suc) + increment) + condition) #Adds an incremented ID
 
-                        self.dictionary[i].S = self.dictionary[i].S + IncrementedValues #Adds an incremented ID to initial list P
+                        self[i].S = self[i].S + IncrementedValues #Adds an incremented ID to initial list P
     
                     except TypeError:
                         continue
 
-        self.dictionary[ID].IncrementID(increment, ID=False) #Increment Succsessors to activity ID asswell
+        self[ID].IncrementID(increment, ID=False) #Increment Succsessors to activity ID asswell
 
         #dont forget to update the idlist:
         self.IDs = [q.GetID() for q in self]
@@ -1421,13 +1426,13 @@ class network:
         preid = []
         for ID in self.IDs:
             ids.append(ID)
-            starts.append((self.dictionary[ID].GetStart(asobject=True) - startdate).days)
-            ends.append((self.dictionary[ID].GetEnd(asobject=True) - startdate).days)
+            starts.append((self[ID].GetStart(asobject=True) - startdate).days)
+            ends.append((self[ID].GetEnd(asobject=True) - startdate).days)
             #adding horisontal lines to critical path
             try:
                 pre = {}
-                for preds in self.dictionary[ID].GetPredecesors():
-                    pre[self.dictionary[StrToInt(preds)].GetEnd(asobject=True)] = preds
+                for preds in self[ID].GetPredecesors():
+                    pre[self[StrToInt(preds)].GetEnd(asobject=True)] = preds
                 preid.append(StrToInt(pre[max(pre)]))
             except:
                 preid.append(None)
@@ -1437,8 +1442,8 @@ class network:
 
         names = []
         for ID in self.IDs:
-            if self.dictionary[StrToInt(ID)].GetName() is not None:
-                names.append(str(self.dictionary[StrToInt(ID)].GetName()))
+            if self[StrToInt(ID)].GetName() is not None:
+                names.append(str(self[StrToInt(ID)].GetName()))
             else:
                 names.append(str(ID))
 
@@ -1487,16 +1492,16 @@ class network:
         
         for i in self.IDs:
             #try:
-            output.write(str(self.dictionary[i].GetID()) + ";")
-            output.write(str(self.dictionary[i].GetName()) + ";"),
-            output.write(str(self.dictionary[i].GetStart(asobject=False)) + ";"),
-            output.write(str(self.dictionary[i].GetEnd(asobject=False)) + ";"),
-            output.write(str(self.dictionary[i].GetDuration()) + ";"),
-            output.write(str(self.dictionary[i].GetSuccsesors()) + ";"),
-            output.write(str(self.dictionary[i].GetPredecesors()) + ";"),
-            output.write(str(self.dictionary[i].GetDurationRangeMin()) + ";"),
-            output.write(str(self.dictionary[i].GetDurationRangeML()) + ";"),
-            output.write(str(self.dictionary[i].GetDurationRangeMax()) + ";"),
+            output.write(str(self[i].GetID()) + ";")
+            output.write(str(self[i].GetName()) + ";"),
+            output.write(str(self[i].GetStart(asobject=False)) + ";"),
+            output.write(str(self[i].GetEnd(asobject=False)) + ";"),
+            output.write(str(self[i].GetDuration()) + ";"),
+            output.write(str(self[i].GetSuccsesors()) + ";"),
+            output.write(str(self[i].GetPredecesors()) + ";"),
+            output.write(str(self[i].GetDurationRangeMin()) + ";"),
+            output.write(str(self[i].GetDurationRangeML()) + ";"),
+            output.write(str(self[i].GetDurationRangeMax()) + ";"),
             output.write("\n")
 
     def OpenNetwork(self, path):
@@ -1716,7 +1721,7 @@ if __name__ == "__main__":
     e.AssignID(5)
     e.AssignDuration(3)
     e.AssignPredecesors(3,4)
-    e.SetDurationRange(min=0, ml=0,max=3)
+    e.SetDurationRange(min=0, ml=0,max=10)
 
     f = activity()
     f.AssignID(6)
@@ -1756,9 +1761,10 @@ if __name__ == "__main__":
     
     P.CalculateTotalFloats()
     
-    P.Simulate(n=1000)
+    #P.Simulate(n=1000)
     P.PrintNetwork()
     P.PlotGantt()
+    print len(P)
 
     
  
