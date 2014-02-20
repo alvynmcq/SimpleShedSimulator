@@ -84,9 +84,10 @@ To do analysis you need to assign them to a network like so::
     P.AddActivity(a,b,c,d,e,f,g,h,i,j)
     P.CalculateTotalFloats()
     P.Simulate(n=1000)
-    P.PrintNetwork()
     P.PlotGantt()
-
+    P.PrintNetwork()
+    
+Wich outputs::
 
     ______________________________________________________________________________________________
     ID Start           End          Duration   Min   ML    Max      Slack     Succsesors               
@@ -102,6 +103,22 @@ To do analysis you need to assign them to a network like so::
     9  2014-04-12      2014-04-22   10         3     7     50       0         None                     
     10 2014-02-27      2014-03-04   5          None  None  None     49        None                     
     ______________________________________________________________________________________________
+
+
+    OTHER INFORMATION:
+    -----------------
+    Deterministic Duration: 61
+    Deterministic Finish: 2014-04-22
+    Critical Path:  [9, 8, 6, 5, 3]
+
+
+    SIMULATION RESULTS:
+    -----------------
+    E(x):           83 2014-05-14
+    P10:            69 2014-04-30
+    P50:            82 2014-05-13
+    P90:            100 2014-05-31
+    Var:            141
 
 
 
