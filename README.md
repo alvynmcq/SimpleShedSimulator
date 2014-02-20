@@ -7,7 +7,7 @@ There is still much work to be done and SimpleShedSimulator is not ready for use
 
 For any questions, email me at anders524@hotmail.com
 
-Contributions are much appreciated :)
+You are welcome to join :)
 
 
 Creating activities
