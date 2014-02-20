@@ -78,7 +78,7 @@ Create activity objects like so::
 
 Creating a network
 ------------------
-You now only have 4 activities. To do analysis you need to assign them to a network like so::
+To do analysis you need to assign them to a network like so::
 
     P = network()
     P.AddActivity(a,b,c,d,e,f,g,h,i,j)
@@ -88,6 +88,20 @@ You now only have 4 activities. To do analysis you need to assign them to a netw
     P.PlotGantt()
 
 
+    ______________________________________________________________________________________________
+    ID Start           End          Duration   Min   ML    Max      Slack     Succsesors               
+    ----------------------------------------------------------------------------------------------
+    1  2014-02-20      2014-02-25   5          None  None  None     15        ['2FS', '7FS']           
+    2  2014-02-25      2014-03-04   7          None  None  None     15        ['7FS', '4SS', '10FF']   
+    3  2014-02-20      2014-03-22   30         None  None  None     0         ['5FS']                  
+    4  2014-02-25      2014-03-07   10         None  None  None     15        ['5FS']                  
+    5  2014-03-22      2014-03-25   3          0     0     10       0         ['6FS']                  
+    6  2014-03-25      2014-04-02   8          1     8     8        0         ['7FS', '8SS']           
+    7  2014-04-02      2014-04-12   10         1     4     10       0         ['9FS']                  
+    8  2014-03-25      2014-04-04   10         3     7     23       8         ['9FS']                  
+    9  2014-04-12      2014-04-22   10         3     7     50       0         None                     
+    10 2014-02-27      2014-03-04   5          None  None  None     49        None                     
+    ______________________________________________________________________________________________
 
 
 
