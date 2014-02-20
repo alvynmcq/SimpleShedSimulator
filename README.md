@@ -18,29 +18,61 @@ Creating activities
 -------------------
 
 
-Create an activity instance like so::
+Create activity objects like so::
 	
-    start = activity() # initiation of activity instance
-    start.AssignID(1) #The activity's ID is 1
-    start.AssignSuccsesors("2FS","3FS") #activity 2 and 3 are  succsessors
-    start.AssignStart(2000,3,1) #the start up date is on the format YYYY,mm,dd
-    start.AssignDuration(20) #the duration is 20 days
+    a = activity()
+    a.AssignID(1)
+    a.AssignDuration(5)
+    a.AssignSuccsesors(2)
 
-You now have an activity object which later can be assigned to a network. Since this is going to be a network, lets add some activities!::
+    b = activity()
+    b.AssignID(2)
+    b.AssignDuration(7)
+    b.AssignSuccsesors("4ss")
 
-    Activity1 = activity()
-    Activity1.AssignID(2)
-    Activity1.AssignDuration(30)
+    c = activity()
+    c.AssignID(3)
+    c.AssignDuration(30)
 
-    Activity2 = activity()
-    Activity2.AssignID(3)
-    Activity2.AssignPredecesors(1)
-    Activity2.AssignDuration(6)
+    d = activity()
+    d.AssignID(4)
+    d.AssignDuration(10)
+    d.AssignSuccsesors(5)
 
-    end = activity()
-    end.AssignID(4)
-    end.AssignPredecesors("2FS","3FS")
-    end.AssignDuration(60)
+    e = activity()
+    e.AssignID(5)
+    e.AssignDuration(3)
+    e.AssignPredecesors(3,4)
+    e.SetDurationRange(min=0, ml=0,max=10)
+
+    f = activity()
+    f.AssignID(6)
+    f.AssignDuration(8)
+    f.AssignPredecesors(5)
+    f.SetDurationRange(min=1, ml=8,max=8)
+
+    g = activity()
+    g.AssignID(7)
+    g.AssignDuration(10)
+    g.AssignPredecesors(6,2,1)
+    g.SetDurationRange(min=1, ml=4,max=10)
+    
+    h = activity()
+    h.AssignID(8)
+    h.AssignDuration(10)
+    h.AssignPredecesors('6ss')
+    h.SetDurationRange(min=3, ml=7,max=23)
+    
+    i = activity()
+    i.AssignID(9)
+    i.AssignDuration(10)
+    i.AssignPredecesors(7,8)
+    i.SetDurationRange(min=3, ml=7,max=50)
+
+    j = activity()
+    j.AssignID(10)
+    j.AssignDuration(5)
+    j.AssignPredecesors("2ff")
 
 
 
@@ -48,26 +80,16 @@ Creating a network
 ------------------
 You now only have 4 activities. To do analysis you need to assign them to a network like so::
 
-    p = network()
-    p.AddActivity(start, Activity1, Activity2, end)
-    p.PrintNetwork()
-    p.CalculatePaths()
-    p.PrintNetwork()
-
-A Gantt chart can be obtained as follows::
-
-    p.PlotGantt()
+    P = network()
+    P.AddActivity(a,b,c,d,e,f,g,h,i,j)
+    P.CalculateTotalFloats()
+    P.Simulate(n=1000)
+    P.PrintNetwork()
+    P.PlotGantt()
 
 
-Simulating the network
-----------------------
-To simulate the Project you first need to assign min, max, and most likely values to EACH activity in the project. This is done with the .SetDurationRange() method::
 
-    Activity1.SetDurationRange(min=5, ml=20, max=50)
-    Activity2.SetDurationRange(min=50, ml=51, max=150)
 
-Each activity's duration is then distributed triangulary according to the parameters given. To Siulate the project, use the .Simulate() method and then run the .PlotHistEnd() method to get a histogram over the end duration::
 
-    p.Simulate()
-    p.PlotHistEnd()
+
 
