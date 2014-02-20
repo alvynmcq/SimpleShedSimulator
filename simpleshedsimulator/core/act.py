@@ -765,8 +765,15 @@ class network:
             try:
                 a =1
                 for w in self[q].GetSuccsesors():
-                    
-                    if IntToStr(w) in ['fs','FS','Fs','fS']:
+                    if IntToStr(w) in ['ss','SS','Ss','sS']:
+                        qq = str(q) + IntToStr(w)
+                        ww = StrToInt(w)
+                        self[ww].AssignPredecesors(qq)
+                    elif IntToStr(w) in ['fs','FS','Fs','fS']:
+                        qq = str(q) + IntToStr(w)
+                        ww = StrToInt(w)
+                        self[ww].AssignPredecesors(qq)
+                    elif IntToStr(w) in ['ff','FF','Ff','fF']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignPredecesors(qq)
@@ -781,7 +788,15 @@ class network:
             try:
 
                 for w in self[q].GetPredecesors():
-                    if IntToStr(w) in ['fs','FS','Fs','fS']:
+                    if IntToStr(w) in ['ss','SS','Ss','sS']:
+                        qq = str(q) + IntToStr(w)
+                        ww = StrToInt(w)
+                        self[ww].AssignSuccsesors(qq)
+                    elif IntToStr(w) in ['fs','FS','Fs','fS']:
+                        qq = str(q) + IntToStr(w)
+                        ww = StrToInt(w)
+                        self[ww].AssignSuccsesors(qq)
+                    elif IntToStr(w) in ['ff','FF','Ff','fF']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignSuccsesors(qq)
@@ -909,6 +924,17 @@ class network:
                             endtimes.append(self.dictionary[StrToInt(q)].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
                         except KeyError:
                             continue
+                    elif IntToStr(q) in ['ss','SS','Ss','sS']:
+                        try:
+                            endtimes.append(self.dictionary[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's predeccesors
+                        except KeyError:
+                            continue
+                    elif IntToStr(q) in['ff','FF','Ff','fF']:
+                        try:
+                            endtimes.append(self.dictionary[StrToInt(q)].GetEnd(asobject=True)
+                                            - datetime.timedelta(days=self[ID].GetDuration())) #endtimes for activity i's predeccesors
+                        except KeyError:
+                            continue
                     else:
                         q = int(q) #FS condition assumed
                         endtimes.append(self[q].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
@@ -953,6 +979,17 @@ class network:
                             endtimes.append(self[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's predeccesors
                         except KeyError: 
                             continue
+                    elif IntToStr(q) in ['ss','SS','Ss','sS']:
+                        try:
+                            endtimes.append(self[StrToInt(q)].GetStart(asobject=True)
+                                            +datetime.timedelta(days=self[ID].GetDuration())) #endtimes for activity i's predeccesors
+                        except KeyError: 
+                            continue
+                    elif IntToStr(q) in['ff','FF','Ff','fF']:
+                        try:
+                            endtimes.append(self.dictionary[StrToInt(q)].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
+                        except KeyError:
+                            continue
                     else:
                         q = int(q) #FS condition assumed
                         endtimes.append(self[q].Getstart(asobject=True)) #endtimes for activity i's predeccesors
@@ -963,7 +1000,6 @@ class network:
             try:
                 duration = datetime.timedelta(days=self[ID].GetDuration())
                 earliest_start_date = min(endtimes) - duration  #max endtime equals earliest starttime
-                #print earliest_start_date, ID
                 self[ID].AssignStart(earliest_start_date.year, 
                                                earliest_start_date.month,
                                                earliest_start_date.day) #assign earliest starttime
@@ -1724,15 +1760,18 @@ if __name__ == "__main__":
     b = activity()
     b.AssignID(2)
     b.AssignDuration(7)
-    b.AssignSuccsesors(4)
+    b.AssignSuccsesors("4ff")
 
+    
+    
     c = activity()
     c.AssignID(3)
-    c.AssignDuration(45)
+    c.AssignDuration(30)
 
     d = activity()
     d.AssignID(4)
     d.AssignDuration(10)
+    #d.AssignPredecesors(2)
     d.AssignSuccsesors(5)
 
 
@@ -1757,7 +1796,7 @@ if __name__ == "__main__":
     h = activity()
     h.AssignID(8)
     h.AssignDuration(10)
-    h.AssignPredecesors(6)
+    h.AssignPredecesors('6ss')
     h.SetDurationRange(min=3, ml=7,max=23)
     
     i = activity()
