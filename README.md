@@ -9,10 +9,6 @@ For any questions, email me at anders524@hotmail.com
 
 Contributions are much appreciated :)
 
-A small tutorial!
-==================
-
-This is meant as a simple tutorial for creating and doing analysis on schedules
 
 Creating activities
 -------------------
@@ -78,7 +74,7 @@ Create activity objects like so::
 
 Creating a network
 ------------------
-To do analysis you need to assign them to a network like so::
+Create a network object like so::
 
     P = network()
     P.AddActivity(a,b,c,d,e,f,g,h,i,j)
