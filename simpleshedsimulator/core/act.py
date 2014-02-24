@@ -529,7 +529,7 @@ class activity:
                 self.SetCritical(False, free = False)
 
     def GetSlack(self, free=False):
-        '''returns the slack of the activity
+        '''Returns the slack of the activity
 
         Args:  free (True/False)
             
@@ -765,18 +765,32 @@ class network:
             try:
                 a =1
                 for w in self[q].GetSuccsesors():
+                    
+                    #start-start
                     if IntToStr(w) in ['ss','SS','Ss','sS']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignPredecesors(qq)
+                    
+                    #finish-start
                     elif IntToStr(w) in ['fs','FS','Fs','fS']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignPredecesors(qq)
+                    
+                    #finish-finish
                     elif IntToStr(w) in ['ff','FF','Ff','fF']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignPredecesors(qq)
+                    
+                    #start-finish
+                    elif IntToStr(w) in ['sf','SF','Sf','sF']:
+                        qq = str(q) + IntToStr(w)
+                        ww = StrToInt(w)
+                        self[ww].AssignPredecesors(qq)
+
+                    #no condition
                     else:
                         w = StrToInt(w)
                         self[w].AssignPredecesors(int(q))
@@ -788,18 +802,32 @@ class network:
             try:
 
                 for w in self[q].GetPredecesors():
+
+                    #start-start
                     if IntToStr(w) in ['ss','SS','Ss','sS']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignSuccsesors(qq)
+
+                    #finish-start
                     elif IntToStr(w) in ['fs','FS','Fs','fS']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignSuccsesors(qq)
+
+                    #finish-finsih
                     elif IntToStr(w) in ['ff','FF','Ff','fF']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignSuccsesors(qq)
+
+                    #start-finish
+                    elif IntToStr(w) in ['sf','SF','Sf','sF']:
+                        qq = str(q) + IntToStr(w)
+                        ww = StrToInt(w)
+                        self[ww].AssignSuccsesors(qq)
+
+                    #no condition
                     else:
                         w = StrToInt(w)
                         self[w].AssignSuccsesors(int(q))
@@ -891,6 +919,7 @@ class network:
             print "No name assigend. Use the method AssignName()"
 
     def GetActivities(self):
+
         if len(self)>0:
             return self.activities
         else:
@@ -919,22 +948,38 @@ class network:
             #handeling of predecessors
             try:
                 for q in P:
+
+                    #finish-start
                     if IntToStr(q) in ['fs','FS','Fs','fS']:
                         try:
                             endtimes.append(self.dictionary[StrToInt(q)].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
                         except KeyError:
                             continue
+
+                    #start-start
                     elif IntToStr(q) in ['ss','SS','Ss','sS']:
                         try:
                             endtimes.append(self.dictionary[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's predeccesors
                         except KeyError:
                             continue
-                    elif IntToStr(q) in['ff','FF','Ff','fF']:
+
+                    #finish-finish
+                    elif IntToStr(q) in ['ff','FF','Ff','fF']:
                         try:
                             endtimes.append(self.dictionary[StrToInt(q)].GetEnd(asobject=True)
                                             - datetime.timedelta(days=self[ID].GetDuration())) #endtimes for activity i's predeccesors
                         except KeyError:
                             continue
+
+                    #start-finish
+                    elif IntToStr(q) in ['Sf','SF','Sf','sF']:
+                        try:
+                            endtimes.append(self.dictionary[StrToInt(q)].GetStart(asobject=True)
+                                            - datetime.timedelta(days=self[ID].GetDuration())) #endtimes for activity i's predeccesors
+                        except KeyError:
+                            continue
+
+                    #no condition
                     else:
                         q = int(q) #FS condition assumed
                         endtimes.append(self[q].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
@@ -974,22 +1019,38 @@ class network:
             #handeling of Succsesors
             try:
                 for q in suc:
+
+                    #finish start
                     if IntToStr(q) in ['fs','FS','Fs','fS']:
                         try:
                             endtimes.append(self[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's predeccesors
                         except KeyError: 
                             continue
+
+                    #start-start
                     elif IntToStr(q) in ['ss','SS','Ss','sS']:
                         try:
                             endtimes.append(self[StrToInt(q)].GetStart(asobject=True)
                                             +datetime.timedelta(days=self[ID].GetDuration())) #endtimes for activity i's predeccesors
                         except KeyError: 
                             continue
+
+                    #finish-finish
                     elif IntToStr(q) in['ff','FF','Ff','fF']:
                         try:
                             endtimes.append(self.dictionary[StrToInt(q)].GetEnd(asobject=True)) #endtimes for activity i's predeccesors
                         except KeyError:
                             continue
+
+                    #start-finish
+                    elif IntToStr(q) in ['Sf','SF','Sf','sF']:
+                        try:
+                            endtimes.append(self[StrToInt(q)].GetEnd(asobject=True)
+                                            +datetime.timedelta(days=self[ID].GetDuration())) #endtimes for activity i's predeccesors
+                        except KeyError: 
+                            continue
+
+                    #no condition
                     else:
                         q = int(q) #FS condition assumed
                         endtimes.append(self[q].Getstart(asobject=True)) #endtimes for activity i's predeccesors
@@ -1814,9 +1875,6 @@ if __name__ == "__main__":
     P = network()
     P.AddActivity(a,b,c,d,e,f,g,h,i,j)
 
-    
-
-    
     P.CalculateTotalFloats()
     
     #P.Simulate(n=1000)
