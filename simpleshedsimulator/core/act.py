@@ -47,28 +47,29 @@ def StrToInt(string):
 
 def IntToStr(integer):
     try:
-        result =  ''.join([i for i in integer if not i.isdigit()])
+        result = ''.join([i for i in integer if not i.isdigit()])
         return result
     except TypeError:
         return integer
 
 class IO:
     def WriteNetworkToFile(self, path, projectinctance):
-        
-        '''Writes the network inctance as a bytestream to file using the pickle module
+
+        '''Writes the network inctance as a bytestream to file using
+           the pickle module
 
             Args: path (str)
 
             Returns:
                 Writes a .sss file to path
             Raises:'''
-        
+
         output = open(path, 'wb')
         pickle.dump(projectinctance, output)
         output.close()
-    
+
     def ReadNetworkFromFile(self, path):
-        
+
         '''Reads a networkfile using the pickle module
 
             Args: path (str)
@@ -76,52 +77,53 @@ class IO:
             Returns:
                 Writes a .sss file to path
             Raises:'''
-        
+
         print path, "hehehehehejek"
         output = open(path, 'rb')
         print output
         project = pickle.load(output)
         return project
-    
+
         output.close()
 
 class activity:
-    '''Creates an activity instance which later can be used by a network object
+    '''Creates an activity instance which later can be used by a
+       network object
 
         Args:
-            
+
         Returns:
             Object
         Raises:
-        
+
         ex::
-        
+
            a = activity()
            a.AssignID(1)
            a.AssignDuration(5)
            a.AssignSuccsesors(2)
-        
+
                 '''
 
     def __init__(self):
 
         self.today = datetime.date.today()
-        
+
         self.free_critical = False
         self.total_critical = False
         self.free_critical_slack = None
         self.total_critical_slack = None
-        
+
         self.early_start = None
         self.late_start = None
         self.early_finish = None
         self.late_finish = None
 
-    def __eq__(self, other) :
+    def __eq__(self, other):
 
-            return self.ID == other.ID
+        return self.ID == other.ID
 
-    def AssignID(self,ID):
+    def AssignID(self, ID):
 
         '''Assigns an ID to the activity.
 
@@ -137,7 +139,7 @@ class activity:
             print "Assigned ID must be integer"
 
     def AssignName(self, name):
-                
+
         '''Assigns a name to the activit inctance.
 
             Args:
@@ -145,20 +147,21 @@ class activity:
             Returns:
                 Sets self.name = name
             Raises:'''
-        
+
         self.name = name
 
-    def AssignStart(self,Y,M,D):
-                
+    def AssignStart(self, Y, M, D):
+
         '''Assigns a startdate to the activit inctance.
 
             Args:
                 Y,M,D (int): The activity's startdate
             Returns:
-                Sets self.start = datetime.date(Y,M,D) and calculates endate if possible.
+                Sets self.start = datetime.date(Y,M,D) and calculates
+                endate if possible.
             Raises:'''
 
-        self.start = datetime.date(Y,M,D)
+        self.start = datetime.date(Y, M, D)
         try:
             difference = datetime.timedelta(self.duration)
             newdate = self.start + difference
@@ -170,17 +173,19 @@ class activity:
             except AttributeError:
                 pass
 
-    def AssignEnd(self,Y,M,D):
-                
+    def AssignEnd(self, Y, M, D):
+
         '''Assigns a enddate to the activit inctance.
 
             Args:
-                Y,M,D (int): The activity's enddate given as YYYY, mm, dd
+                Y,M,D (int): The activity's enddate given as YYYY, mm,
+                 dd
             Returns:
-                Sets self.end = datetime.date(Y,M,D) and sets the duration if possible.
+                Sets self.end = datetime.date(Y,M,D) and sets the
+                duration if possible.
             Raises:'''
-        
-        self.end = datetime.date(Y,M,D)
+
+        self.end = datetime.date(Y, M, D)
         try:
             delta = self.end - self.start
             self.duration = delta.days
@@ -188,17 +193,18 @@ class activity:
             pass
 
     def AssignDuration(self, duration):
-                
+
         '''Assigns a Duration to the activity inctance.
 
             Args:
                 duraton (int): The activity's duration
             Returns:
-                Sets self.duration = duration and sets the enddate if possible.
+                Sets self.duration = duration and sets the enddate
+                if possible.
             Raises:
-            
+
             '''
-        
+
         self.duration = duration
         try:
             difference = datetime.timedelta(days=duration)
@@ -207,7 +213,7 @@ class activity:
         except AttributeError:
             return "No startdate assigend. Use the method AssignStart"
 
-    def AssignSuccsesors(self,*args):
+    def AssignSuccsesors(self, *args):
 
         '''Assigns succerssors to the activity inctance.
 
@@ -216,8 +222,8 @@ class activity:
             Returns:
                 Sets self.S = [] (list).
             Raises:'''
-        
-        #Add FS condition to empty predecessors 
+
+        #Add FS condition to empty predecessors
         arguments = []
         for q in args:
             try:
@@ -235,35 +241,13 @@ class activity:
                 if self.ID < StrToInt(q):
                     self.S.append(q)
                 elif self.ID > StrToInt(q):
-                    raise AttributeError('Successor ID smaaler then Activity ID ')
-            
+                    errormessage = 'Successor ID smaaler then Activity ID '
+                    raise AttributeError(errormessage)
+
             #remove duplicates and convert to str()
             self.S = [str(i) for i in self.S]
             self.S = list(set(self.S))
-            
-            #Convert to uppercase
-            suc = []
-            for s in self.S:
-                try:
-                    suc.append(s.upper())
-                except SyntaxError:
-                    suc.append(s)
-                    continue
-            self.S = suc
-            
-            
-        except:
-            self.S = []
-            for q in args:
-                if self.ID < StrToInt(q):
-                    self.S.append(q)
-                elif self.ID > StrToInt(q):
-                    raise AttributeError('Successor ID smaaler then Activity ID ')
-            
-            #remove duplicates and convert to str()
-            self.S = [str(i) for i in self.S]
-            self.S = list(set(self.S))
-            
+
             #Convert to uppercase
             suc = []
             for s in self.S:
@@ -274,8 +258,32 @@ class activity:
                     continue
             self.S = suc
 
-    def AssignPredecesors(self,*args):
-                
+
+        except:
+            self.S = []
+            for q in args:
+                if self.ID < StrToInt(q):
+                    self.S.append(q)
+                elif self.ID > StrToInt(q):
+                    errormessage = 'Successor ID smaaler then Activity ID '
+                    raise AttributeError(errormessage)
+
+            #remove duplicates and convert to str()
+            self.S = [str(i) for i in self.S]
+            self.S = list(set(self.S))
+
+            #Convert to uppercase
+            suc = []
+            for s in self.S:
+                try:
+                    suc.append(s.upper())
+                except SyntaxError:
+                    suc.append(s)
+                    continue
+            self.S = suc
+
+    def AssignPredecesors(self, *args):
+
         '''Assigns predecesors to the activity inctance.
 
             Args:
@@ -283,8 +291,8 @@ class activity:
             Returns:
                 Sets self.P = [] (list).
             Raises:'''
-        
-        #Add FS condition to empty predecessors 
+
+        #Add FS condition to empty predecessors
         arguments = []
         for q in args:
             try:
@@ -296,18 +304,18 @@ class activity:
             except ValueError:
                 arguments.append(q)
         args = arguments
-        
+
         try:
             for q in args:
                 if self.ID > StrToInt(q):
                     self.P.append(q)
                 elif self.ID < StrToInt(q):
                     raise AttributeError('Predecessor ID bigger then Activity ID ')
-            
+
             #remove duplicates and convert to str()
             self.P = [str(i) for i in self.P]
             self.P = list(set(self.P))
-            
+
             #Convert to uppercase
             pre = []
             for p in self.P:
@@ -317,7 +325,7 @@ class activity:
                     pre.append(p)
                     continue
             self.P = pre
-            
+
         except:
             self.P = []
             for q in args:
@@ -328,7 +336,7 @@ class activity:
             #remove duplicates and convert to str()
             self.P = [str(i) for i in self.P]
             self.P = list(set(self.P))
-            
+
             #Convert to uppercase
             pre = []
             for p in self.P:
@@ -340,15 +348,17 @@ class activity:
             self.P = pre
 
     def GetStart(self, asobject=False):
-                
-        '''returns the startdate either as a list of times or as a datetimeobject.
+
+        '''returns the startdate either as a list of times or
+        as a datetimeobject.
 
             Args:
-                asobject (boolean): Determines wether to return a timedateobject or a list of times
+                asobject (boolean): Determines wether to return a
+                timedateobject or a list of times
             Returns:
                 return a timedateobject or a list of times
             Raises:'''
-        
+
         try:
             if asobject == False:
                 Start = []
@@ -361,15 +371,17 @@ class activity:
             pass
 
     def GetEnd(self, asobject=False):
-                
-        '''returns the enddate either as a list of times or as a datetimeobject.
+
+        '''returns the enddate either as a list of times or as a
+         datetimeobject.
 
             Args:
-                asobject (boolean): Determines wether to return a timedateobject or a list of times
+                asobject (boolean): Determines wether to return
+                a timedateobject or a list of times
             Returns:
                 return a timedateobject or a list of times
             Raises:'''
-        
+
         try:
             if asobject == False:
                 End = []
@@ -383,79 +395,79 @@ class activity:
             pass
 
     def GetDuration(self):
-        
+
         '''Returns the duration of the activity
 
             Args:
-                
+
             Returns:
                 self.duration (int)
             Raises:'''
-        
+
         try:
             return self.duration
         except AttributeError:
             pass
 
     def GetName(self):
-        
+
         '''Returns the name of the activity
 
             Args:
-                
+
             Returns:
                 self.name (str)
             Raises:'''
-        
+
         try:
             return self.name
         except AttributeError:
             pass
 
     def GetID(self):
-        
+
         '''Returns the ID of the activity
 
             Args:
-                
+
             Returns:
                 self.ID (int)
             Raises:'''
-            
+
         try:
             return self.ID
         except:
             print "No ID assigned. Use AssignID()."
 
     def GetSuccsesors(self):
-        
+
         '''Returns the succsessors of the activity
 
             Args:
-                
+
             Returns:
                 self.S (list)
             Raises:'''
-                    
+
         try:
             return self.S
         except:
             return None
 
     def GetPredecesors(self):
-        
+
         '''Returns the predecessors of the activity
 
             Args:
-                
+
             Returns:
                 self.P (list)
             Raises:'''
-        
+
         try:
             return self.P
         except:
-            return None # "This activity has no  assigned Predecesors. Use AssignPredecesors()."
+            return None
 
     def GetSummary(self):
         self.summary = []
@@ -476,28 +488,29 @@ class activity:
         '''Sets the activity to critical
 
         Args: free (True/False)
-            
+
         Returns:
-            
+
         Raises:'''
         if free == True:
-            if critical in ["yes", True, "y", "Y","YES", "Yes" ]:
+            if critical in ["yes", True, "y", "Y", "YES", "Yes"]:
                 self.free_critical = True
         else:
-            if critical in ["yes", True, "y", "Y","YES", "Yes" ]:
+            if critical in ["yes", True, "y", "Y", "YES", "Yes"]:
                 self.total_critical = True
 
     def GetCritical(self, free=False):
-        '''returns True/false depending on criticality of activity (.SetCritical())
+        '''returns True/false depending on criticality of activity
+        (.SetCritical())
 
         Args: free (True/False)
-            
+
         Returns:
-            
+
         Raises:'''
         try:
             if free == True:
-                return free_critical 
+                return free_critical
             else:
                 return total_critical
         except:
@@ -507,20 +520,20 @@ class activity:
         '''Sets the slack of the activity
 
         Args: slack (int), free (True/False)
-            
+
         Returns:
-            
+
         Raises:'''
         if free == True:
-            
+
             self.free_critical_slack = slack.days
             if self.free_critical_slack <= 0.0:
                 self.free_critical_slack = 0
                 self.SetCritical(True, free = True)
-            
+
             elif self.free_critical_slack > 0.0:
                 self.SetCritical(False, free = True)
-        
+
         else:
             self.total_critical_slack = slack
             if self.total_critical_slack <= 0.0:
@@ -532,9 +545,9 @@ class activity:
         '''Returns the slack of the activity
 
         Args:  free (True/False)
-            
+
         Returns: int
-            
+
         Raises:'''
         if free == True:
             return self.free_critical_slack
@@ -544,18 +557,18 @@ class activity:
     def SetDurationRange(self, **kwargs):
         '''Sets the duration range of the activity
 
-        Args: 
-            
+        Args:
+
         Returns:
-            
+
         Raises:
-        
+
         ex::
-        
+
            activity.SetDurationRang(min=1, ml=2, max=3)
-        
+
         '''
-        
+
         for args in kwargs.items():
             if args[0] in ["min", "MIN", "Min"]:
                 self.minduration = args[1]
@@ -563,52 +576,52 @@ class activity:
                 self.maxduration = args[1]
             elif args[0] in ["ml", "ML", "Ml"]:
                 self.mlduration = args[1]
-    
+
     def SetDurationRangeMin(self, MIN):
         '''Sets the minimum duration of the activity
 
-        Args: MIN (int) 
-            
+        Args: MIN (int)
+
         Returns:
-            
+
         Raises:
-        
+
         '''
         self.minduration = MIN
-    
+
     def SetDurationRangeML(self,ML):
         '''Sets the most likely duration of the activity
 
-        Args: ML (int) 
-            
+        Args: ML (int)
+
         Returns:
-            
+
         Raises:
-        
+
         '''
         self.mlduration = ML
-    
+
     def SetDurationRangeMax(self,MAX):
         '''Sets the maximum duration of the activity
 
-        Args: MAX (int) 
-            
+        Args: MAX (int)
+
         Returns:
-            
+
         Raises:
-        
+
         '''
         self.maxduration = MAX
-    
+
     def GetDurationRangeMin(self):
         '''Returns the minimum duration
 
-        Args: 
-            
+        Args:
+
         Returns: self.minduration (int)
-            
+
         Raises:
-        
+
         '''
         try:
             return self.minduration
@@ -618,12 +631,12 @@ class activity:
     def GetDurationRangeML(self):
         '''Returns the most likely duration
 
-        Args: 
-            
+        Args:
+
         Returns: self.mlduration (int)
-            
+
         Raises:
-        
+
         '''
         try:
             return self.mlduration
@@ -633,12 +646,12 @@ class activity:
     def GetDurationRangeMax(self):
         '''Returns the maximum duration
 
-        Args: 
-            
+        Args:
+
         Returns: self.maxduration (int)
-            
+
         Raises:
-        
+
         '''
         try:
             return self.maxduration
@@ -652,7 +665,7 @@ class activity:
             current_ID = self.GetID()
             newID = current_ID + increment
             self.AssignID(newID)
-        
+
         #Increment Succsesors
         if SUC == True:
             newS = []
@@ -660,18 +673,19 @@ class activity:
                 for suc in self.S:
                     condition = IntToStr(suc)
                     newS.append(str(StrToInt(suc) + increment) + condition)
-                
+
                 self.S = newS
-            
+
             except AttributeError:
                 pass
 
 class network:
     '''
-    Creates an network instance. The network is based on previoulsy made activities
-    
+    Creates an network instance. The network is based on previoulsy
+    made activities
+
     ex::
-    
+
        P = network()
        P.AddActivity(a,b,c,d,e,f,g,h,i)
        P.PrintNetwork()
@@ -711,7 +725,7 @@ class network:
         self.dictionary = dict(d)
 
     def __UpdateIDs(self):
-        
+
         self.IDs = []
         try:
             for q in self.activities:
@@ -728,11 +742,11 @@ class network:
             Returns:
                 Sets self.name = name
             Raises:'''
-        
+
         self.name = name
 
     def AddActivity(self, *args):
-                
+
         '''Adds an activity to the network.
 
         Args:
@@ -740,9 +754,9 @@ class network:
         Returns:
             Sets self.activities and updatelinks
         Raises:'''
-        
+
         initial_number_of_activities = len(self)
-        
+
         #Make sure one does not add the same activity
         for i in range(0,len(args)):
             if args[i].GetID() in self.IDs: #Make sure one does not add object with same ID
@@ -753,7 +767,7 @@ class network:
                 self.activities.append(args[i])
 
         self.__UpdateIDs()
-        
+
         #Update links
         number_of_activities = len(self)
         if number_of_activities > initial_number_of_activities:
@@ -765,25 +779,25 @@ class network:
             try:
                 a =1
                 for w in self[q].GetSuccsesors():
-                    
+
                     #start-start
                     if IntToStr(w) in ['ss','SS','Ss','sS']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignPredecesors(qq)
-                    
+
                     #finish-start
                     elif IntToStr(w) in ['fs','FS','Fs','fS']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignPredecesors(qq)
-                    
+
                     #finish-finish
                     elif IntToStr(w) in ['ff','FF','Ff','fF']:
                         qq = str(q) + IntToStr(w)
                         ww = StrToInt(w)
                         self[ww].AssignPredecesors(qq)
-                    
+
                     #start-finish
                     elif IntToStr(w) in ['sf','SF','Sf','sF']:
                         qq = str(q) + IntToStr(w)
@@ -796,8 +810,8 @@ class network:
                         self[w].AssignPredecesors(int(q))
             except:
                 continue
-                
-                
+
+
         for q in self.dictionary:
             try:
 
@@ -831,26 +845,26 @@ class network:
                     else:
                         w = StrToInt(w)
                         self[w].AssignSuccsesors(int(q))
-                        
+
             except:
                 pass
 
     def GetNetworkIDDict(self):
-        
+
         self.ID_dict = {}
         for q in self.activities:
             self.ID_dict[q.GetID()] = q
-        
+
         return self.ID_dict
 
     def PrintNetwork(self):
-         
+
         '''Prints the network to terminal.
 
             Args:
 
             Returns:
-                
+
             Raises:'''
         self.__ForwardPass() #recalculate project dates
 
@@ -880,10 +894,10 @@ class network:
                 print str(self[i].GetSlack()).ljust(9),
                 print str(self[i].GetSuccsesors()).ljust(25)
                 #print str(self[i].GetPredecesors()).ljust(7)
-        
+
             except KeyError:
                 continue
-            
+
         print "______________________________________________________________________________________________\n"
         print "\n\n"
         print "OTHER INFORMATION:"
@@ -904,7 +918,7 @@ class network:
         print str('Var:').ljust(15), stats.var(self.GetSimulationVariates(ID = end_id))
 
     def GetName(self):
-                
+
         '''Returns the name of the network
 
             Args:
@@ -912,7 +926,7 @@ class network:
             Returns:
                 self.name (str)
             Raises:'''
-            
+
         try:
             return self.name
         except AttributeError:
@@ -926,8 +940,8 @@ class network:
             print "No activities assigend to network. Use the method AssignActivity()"
 
     def __ForwardPass(self):
-                
-        '''Calculates the earliest starttimes for each activity. The 
+
+        '''Calculates the earliest starttimes for each activity. The
         method uses the forward pass algorithm to calculate the earliest start dates.
 
             Args:
@@ -935,10 +949,10 @@ class network:
             Returns:
                 Assigns new starttime according to logic in network
             Raises:'''
-        
+
         #Update links
         self.UpdateLinks
-        
+
         for ID in self.IDs:
             try:
                 P = self[ID].GetPredecesors() #predecesors for each activity i
@@ -989,7 +1003,7 @@ class network:
 
             try:
                 earliest_start_date = max(endtimes)  #max endtime equals earliest starttime
-                self[ID].AssignStart(earliest_start_date.year, 
+                self[ID].AssignStart(earliest_start_date.year,
                                                earliest_start_date.month,
                                                earliest_start_date.day) #assign earliest starttime
             except TypeError:
@@ -997,7 +1011,7 @@ class network:
 
     def __BackwardPass(self):
 
-        '''Calculates the Latest starttimes for each activity. The 
+        '''Calculates the Latest starttimes for each activity. The
         method uses the backward pass algorithm to calculate the earliest start dates.
 
             Args:
@@ -1024,7 +1038,7 @@ class network:
                     if IntToStr(q) in ['fs','FS','Fs','fS']:
                         try:
                             endtimes.append(self[StrToInt(q)].GetStart(asobject=True)) #endtimes for activity i's predeccesors
-                        except KeyError: 
+                        except KeyError:
                             continue
 
                     #start-start
@@ -1032,7 +1046,7 @@ class network:
                         try:
                             endtimes.append(self[StrToInt(q)].GetStart(asobject=True)
                                             +datetime.timedelta(days=self[ID].GetDuration())) #endtimes for activity i's predeccesors
-                        except KeyError: 
+                        except KeyError:
                             continue
 
                     #finish-finish
@@ -1047,7 +1061,7 @@ class network:
                         try:
                             endtimes.append(self[StrToInt(q)].GetEnd(asobject=True)
                                             +datetime.timedelta(days=self[ID].GetDuration())) #endtimes for activity i's predeccesors
-                        except KeyError: 
+                        except KeyError:
                             continue
 
                     #no condition
@@ -1061,7 +1075,7 @@ class network:
             try:
                 duration = datetime.timedelta(days=self[ID].GetDuration())
                 earliest_start_date = min(endtimes) - duration  #max endtime equals earliest starttime
-                self[ID].AssignStart(earliest_start_date.year, 
+                self[ID].AssignStart(earliest_start_date.year,
                                                earliest_start_date.month,
                                                earliest_start_date.day) #assign earliest starttime
             except (TypeError, ValueError):
@@ -1076,7 +1090,7 @@ class network:
         #Update links and dates
         self.UpdateLinks
         self.__ForwardPass
-        
+
         for i in self.IDs:
             try:
                 S = self[i].GetSuccsesors() #predecesors for each activity i
@@ -1106,7 +1120,7 @@ class network:
                 pass
 
     def GetPaths(self, start_activity_id=1, from_successors=True):
-        
+
         def f(d):
             paths = []
             for key, value in d.items():
@@ -1117,7 +1131,7 @@ class network:
                     for l in internal_lists:
                         paths.append([key] + l)
             return paths
-        
+
         if from_successors == True:
             def getsuccessors(ID):
                 try:
@@ -1136,7 +1150,7 @@ class network:
                     path = {}
                     for q in self[StrToInt(ID)].GetPredecesors():
                         path[StrToInt(q)] = getpredecessors(StrToInt(q))
-                    
+
                     return path
                 except TypeError:
                     pass
@@ -1144,18 +1158,18 @@ class network:
             self.paths = getpredecessors(start_activity_id)
 
 
-        
+
         paths = f(self.paths)
         for path in paths:
             path.insert(0,start_activity_id)
-        
+
         return paths
 
     def GetCriticalPath(self):
         '''
         Returns a list consisting of those activities which are critical. That is those activities which
         .GetSlack(free=False) = 0
-        
+
         Args:
 
         Returns:
@@ -1165,14 +1179,14 @@ class network:
         #find activity with latest enddate:
         network_end_ID = self.GetNetworkEnd(return_ID =True)
         paths = self.GetPaths(start_activity_id=network_end_ID, from_successors=False)
-        
+
         critical_path = None
         duration = 0
         for path in paths:
             if duration < self.CalculatePathDuration(path):
                 duration = self.CalculatePathDuration(path)
                 critical_path = path
-        
+
         return [x for x in critical_path if x is not None] #removes None values
 
     def CalculateTotalFloats(self):
@@ -1180,16 +1194,16 @@ class network:
 
         self.__ForwardPass()
         early_starts = [q.GetStart(asobject=True) for q in self]
-        
+
         self.__BackwardPass()
         late_starts = [q.GetStart(asobject=True) for q in self]
-        
+
         ID = [q.GetID() for q in self]
-         
+
         for ls, es, i in zip(late_starts,early_starts, ID):
             slack = (ls-es).days
             self[i].SetSlack(slack,free=False)
-        
+
         self.__ForwardPass()
 
     def CalculatePathDuration(self, path):
@@ -1197,20 +1211,20 @@ class network:
         for ID in path:
             if ID is not None:
                 durations.append(self[ID].GetDuration())
-        
+
         return sum(durations)
 
     def GetNetworkEnd(self, asobject=True, return_ID=False):
-        
+
         '''Get the last activity's end date
 
             Args:
 
             Returns:
-                Returns a dattimeobject or a list 
+                Returns a dattimeobject or a list
             Raises:'''
-        
-        #This should be updated to search throug those activities which only has None Succsessors   
+
+        #This should be updated to search throug those activities which only has None Succsessors
         self.__ForwardPass() #recalculate project dates
         if return_ID == False:
             enddates = []
@@ -1227,13 +1241,13 @@ class network:
             return self.enddate_id
 
     def GetNetworkStart(self, asobject=True):
-        
+
         '''Get the first activity's start date
 
             Args:
 
             Returns:
-                Returns a dattimeobject or a list 
+                Returns a dattimeobject or a list
             Raises:'''
         starts = []
         for activity in self:
@@ -1243,11 +1257,11 @@ class network:
         return self.startdate
 
     def Simulate(self, n=10, WriteToDB=True, DbName="Simulation_variates.db", RiskTable = None):
-        
+
         '''Simulates the network. n = 1000 itterations is default.
-         Currently, the only avilable distribution is the triangular 
+         Currently, the only avilable distribution is the triangular
          distribution (http://en.wikipedia.org/wiki/Triangular_distribution)
-         The method allso gives you the opportunity to write the resulting endates, that is the duration (days) from 
+         The method allso gives you the opportunity to write the resulting endates, that is the duration (days) from
          project start to the relevant activity's enddate to a database file called Simulation_variates.db using SQLite
 
             Args: n (int) number of itterations
@@ -1258,21 +1272,21 @@ class network:
             Returns:
                 Writes simulation variates to SQLite DB
             Raises:'''
-        
+
         #updating theproject
         #Removing old database file
         try:
             os.remove(DbName)
         except OSError:
             pass
-        
+
         if WriteToDB == True:
             #Constructing appropriate database using SQLite
             db_string = ""
             for q in self.activities:
-                db_string = db_string + "ID" + str(q.GetID()) + " TEXT" +  ", " 
-            db_string_dates =  "CREATE TABLE SimulationResults(" +  db_string[:-2] + ")"  
-            db_string_critical =  "CREATE TABLE SimulationResults_critical(" +  db_string[:-2] + ")"  
+                db_string = db_string + "ID" + str(q.GetID()) + " TEXT" +  ", "
+            db_string_dates =  "CREATE TABLE SimulationResults(" +  db_string[:-2] + ")"
+            db_string_critical =  "CREATE TABLE SimulationResults_critical(" +  db_string[:-2] + ")"
 
             #Creating database
             con = lite.connect(DbName)
@@ -1285,7 +1299,7 @@ class network:
             con.commit() # Save (commit) the changes
 
         self.networkends = []
-        """ 
+        """
         this loops assigns a random duration for each activity in the
         network, and calculates the endtime. This is done n times
         """
@@ -1317,16 +1331,16 @@ class network:
                             enddates.append(duration.days)
                             critical = q.GetSlack(free=False)
                             criticality.append(critical)
-                        
+
                         except AttributeError:
                             continue
                     enddates = str(tuple(enddates))
                     criticality= str(tuple(criticality))
-                    db_string_dates = "INSERT INTO SimulationResults VALUES" + enddates 
+                    db_string_dates = "INSERT INTO SimulationResults VALUES" + enddates
                     db_string_criticality = "INSERT INTO SimulationResults_critical VALUES" + criticality
                     cur.execute(db_string_dates)
                     cur.execute(db_string_criticality)
-                
+
 
                     enddate = (self.GetNetworkEnd() - self.GetNetworkStart()).days
                     self.networkends.append(enddate)
@@ -1353,16 +1367,16 @@ class network:
                             enddates.append(duration.days)
                             critical = q.GetSlack(free=False)
                             criticality.append(critical)
-                        
-                        
+
+
                         except AttributeError:
                             continue
                     enddates = str(tuple(enddates))
                     criticality= str(tuple(criticality))
-                    db_string_dates = "INSERT INTO SimulationResults VALUES" + enddates 
+                    db_string_dates = "INSERT INTO SimulationResults VALUES" + enddates
                     db_string_criticality = "INSERT INTO SimulationResults_critical VALUES" + criticality
                     cur.execute(db_string_dates)
-                    print db_string_criticality 
+                    print db_string_criticality
                     print db_string_dates
                     cur.execute(db_string_criticality)
 
@@ -1372,7 +1386,7 @@ class network:
         con.close()
 
     def GetSimulationVariates(self,DbName="Simulation_variates.db", ID = 1, table="SimulationResults"):
-        
+
         '''Returns the simulated variates from the simulation
 
             Args: DbName (str) name of database. by default: Simulation_variates.db
@@ -1390,32 +1404,32 @@ class network:
             return [int(i[0]) for i in cur.fetchall()]
         except:
             raise AttributeError('Could not find database file')
-    
+
     def GetSimulationMean(self, I):
         return stats.mean(self.GetSimulationVariates(ID = I))
 
     def GetSimulationPercentile(self, I, p, date=False):
-        variates = self.GetSimulationVariates(ID = I) 
+        variates = self.GetSimulationVariates(ID = I)
         variate = stats.percentile(variates, p)
-        
+
         if date == True:
-            
+
             return self.GetNetworkStart(asobject = True) + datetime.timedelta(variate)
-        
+
         elif date == False:
-            
+
             return int(variate)
-    
+
     def PlotHistEnd(self, cumulative = False, bins=20, normed = True):
-        
-        '''Plots the network enddate as a histogram (currently uses Matplotlib). 
+
+        '''Plots the network enddate as a histogram (currently uses Matplotlib).
 
             Args: Cumulative (boolean), bins (int), normed (boolean)
 
             Returns:
                 Returns a matplotlib object
             Raises:'''
-            
+
         data = self.GetSimulationVariates()
         print data, "her"
         plt.hist(data, cumulative = cumulative, bins = bins, normed=normed)
@@ -1423,8 +1437,8 @@ class network:
         plt.show()
 
     def IncrementNetworkAt(self, ID, increment):
-        
-        '''Increment IDs ad ID. This is used to add activities 
+
+        '''Increment IDs ad ID. This is used to add activities
 
             Args: ID (int), increment (int)
 
@@ -1435,28 +1449,28 @@ class network:
         for i in self.IDs:
             try:
                 if i > ID:
-                    self[i].IncrementID(increment) 
+                    self[i].IncrementID(increment)
                 else:
                     continue
             except KeyError:
                 continue
 
-        #Updates those predecesors which id is bigger than ID 
+        #Updates those predecesors which id is bigger than ID
         for i in self.IDs:
                     try:
                         for pre in self[i].GetPredecesors():
                             IncrementedValues = []
                             #Checks which predecessors are bigger than the IDs and increment
-                            if StrToInt(pre) > ID: 
+                            if StrToInt(pre) > ID:
                                 self[i].P.remove(pre) #Remove element
-                                condition = IntToStr(pre) 
+                                condition = IntToStr(pre)
                                 IncrementedValues.append(str(StrToInt(pre) + increment) + condition) #Adds an incremented ID
                         self[i].P = self[i].P + IncrementedValues #Adds an incremented ID to initial list P
-    
+
                     except TypeError:
                         continue
 
-        #Updates successros which id is bigger than ID 
+        #Updates successros which id is bigger than ID
         for i in self.IDs:
                     try:
                         for suc in self[i].GetSuccsesors():
@@ -1465,11 +1479,11 @@ class network:
                             if StrToInt(suc) > ID:
                                 if self[i].GetID() < ID:
                                     self[i].S.remove(suc) #Remove element
-                                    condition = IntToStr(suc) 
+                                    condition = IntToStr(suc)
                                     IncrementedValues.append(str(StrToInt(suc) + increment) + condition) #Adds an incremented ID
 
                         self[i].S = self[i].S + IncrementedValues #Adds an incremented ID to initial list P
-    
+
                     except TypeError:
                         continue
 
@@ -1483,38 +1497,38 @@ class network:
         Inserts an activity above ID
         ex::
            P.InsertActivity(ID=5)
-    
+
         '''
-        
+
         #make room for new activity
         self.IncrementNetworkAt(ID-1, increment = 1)
-        
+
         # create a new activity instance
         Activity = activity()
         Activity.AssignDuration(1)
         Activity.AssignID(ID )
         Activity.AssignSuccsesors(ID+1)
         self.AddActivity(Activity)
-        
+
         #Don't forget to sort the network
         self.SortNetwork()
 
     def SortNetwork(self, sorton = "x.GetID()"):
         '''
-        Sorts the network acording to the sorton variable. 
-        
+        Sorts the network acording to the sorton variable.
+
         Args: sorton (str)
 
         Returns:
-                Sorts the list self.IDs 
+                Sorts the list self.IDs
         Raises:''
-        
+
         ex::
            P.SortNetwork(sorton = "x.GetDuration()")
-        
+
         '''
         self.activities.sort(key = lambda x: eval(sorton))
-        
+
         self.sortedby = sorton
 
         #dont forget to update the idlist:
@@ -1525,15 +1539,15 @@ class network:
         '''Plots the network in a ganttchart (currently uses Matplotlib). Currently, only the unic successors are marked with arrows
            It is only possible to plot a Gannt cahrt which is sorted acording to the activity IDs.
 
-            Args: 
+            Args:
 
             Returns:
                 Returns a matplotlib object
             Raises:'''
-        
+
         if self.sortedby is not "x.GetID()":
             self.SortNetwork()
-        
+
         startdate = self.GetNetworkStart()
         enddate = self.GetNetworkEnd()
         ids = []
@@ -1569,7 +1583,7 @@ class network:
         plt.grid()
         plt.hlines(range(1,len(ids)+1), starts, ends, colors = 'green', lw = 9)
         plt.vlines(starts, ids, preid, colors = 'black', lw = 0)
-        
+
 
 
 
@@ -1591,21 +1605,21 @@ class network:
     def SaveNetwork(self, path, heading=True):
         '''
         Saves the network to a .csv file
-        
+
         Args: path
 
         Returns:
-            
+
         Raises:
         '''
-         
+
         self.__ForwardPass() #recalculate project dates
-        
+
         output = open(path, 'w')
-        
+
         if heading == True:
             output.write("ID;NAME;START;END;DURATION;SUCCSESSOR;PREDESESSOR;MINDURATION;MLDURATION;MAXDURATION \n")
-        
+
         for i in self.IDs:
             #try:
             output.write(str(self[i].GetID()) + ";")
@@ -1621,7 +1635,7 @@ class network:
             output.write("\n")
 
     def OpenNetwork(self, path):
-        
+
         input = open(path, 'r')
         for line in input:
 
@@ -1629,46 +1643,46 @@ class network:
             a = activity()
             a.AssignID(i[0])
             a.AssignName(i[1])
-            
+
             start = eval(i[2])
             try:
                 a.AssignStart(*start)
             except TypeError:
                 pass
-            
+
             end = eval(i[3])
             try:
                 a.AssignEnd(*end)
             except TypeError:
                 pass
-            
+
             duration = int(i[4])
             a.AssignDuration(duration)
-            
+
             sucsessor = eval(i[5])
             try:
                 a.AssignSuccsesors(*sucsessor)
             except TypeError:
                 pass
-            
+
             predecessor = eval(i[6])
             try:
                 a.AssignPredecesors(*predecessor)
             except TypeError:
                 pass
-            
+
             try:
                 minduration = int(i[7])
                 a.SetDurationRangeMin(minduration)
             except:
                 pass
-                
+
             try:
                 mlduration = int(i[8])
                 a.SetDurationRangeML(mlduration)
             except:
                 pass
-                
+
             try:
                 maxduration = int(i[9])
                 a.SetDurationRangeMax(maxduration)
@@ -1681,9 +1695,9 @@ class network:
 
 class risktable:
     """
-    Creates a risktable object which can be simulated through. A risk table with 3 riskdrivers and 
+    Creates a risktable object which can be simulated through. A risk table with 3 riskdrivers and
     4 activities is on the form:
-    
+
     +------------+------------+-----------+-----------+
     |            |Riskdriver 1|Riskdriver2|Riskdriver3|
     +============+============+===========+===========+
@@ -1695,9 +1709,9 @@ class risktable:
     +------------+------------+-----------+-----------+
     | activity_4 |            |[10,11,12] |           |
     +------------+------------+-----------+-----------+
-    
+
     ex::
-    
+
        P = network() #creates a network
        P.AddActivity(a,b,c,d,e,f,g,h,i) #add the activities a,b,c,..i
 
@@ -1712,9 +1726,9 @@ class risktable:
        R.AddRiskDriverDuration(6, 'riskrdiver_2', [10,11,12])
        R.PrintRiskTable() #dumps the risktable in json format
        R.GenerateTotalTimes() #generate durations based on the table
-    
+
     """
-    
+
     def __init__(self, net):
         self.riskdrivers = {}
         self.net = net
@@ -1725,11 +1739,11 @@ class risktable:
     def AddRiskDriver(self, name, effectiveon = []):
         '''
         Adds a risk driver to the risktable
-        
+
         Args: name (str), effectiveon (list)
 
         Returns: sets self.riskdrivers[name] = effectiveon
-        
+
         Raises:
         '''
         self.riskdrivers[name] = effectiveon
@@ -1742,36 +1756,36 @@ class risktable:
 
     def AddRiskDriverDuration(self, ID, riskdriver, parameters):
         '''
-        Adds quantification and assigns which activity the riskdriver impacts.  
+        Adds quantification and assigns which activity the riskdriver impacts.
         The risk driver must first be created with .AddRiskDriver()
-        
+
         Args: ID (int), riskdriver (str) parameters (list)
 
         Returns: adds an impact on an activity with an effect
-            
+
         Raises:
-        
+
         In the example below riskdriver_1 has an effect on activity with ID=3 the effect is an additional duration
         which is distributed triangulary with min=10, ml=11 and max=12
-        
+
         ex::
-        
+
            R.AddRiskDriverDuration(3, 'riskrdiver_1', [10,11,12])
-        
+
         '''
         self.table[ID][riskdriver] = parameters
 
     def PrintRiskTable(self):
         '''
-        Dumps the risktable to screen 
-        
-        Args: 
+        Dumps the risktable to screen
+
+        Args:
 
         Returns: prints to screen in json format
-            
+
         Raises:
         '''
-        
+
         print json.dumps(self.table, indent=10)
 
         #pprint.pprint(self.table)
@@ -1779,19 +1793,19 @@ class risktable:
     def GenerateTotalTimes(self):
         '''
         Generate activity durations based on the quantification of the risk table
-        
-        Args: 
+
+        Args:
 
         Returns: dictionary
-            
+
         Raises:
-        
+
         In the example below a risk table R has allready been created
-        
+
         ex::
-        
+
            R.GenerateTotalTimes() #generate durations based on the table
-        
+
         '''
         times = {}
         for q in self.table:
@@ -1802,7 +1816,7 @@ class risktable:
                 T = triang(min=params[0], ml=params[1], max=params[2]).generate(1)[0]
                 totaltime.append(base_duration + T)
                 times[q] = sum(totaltime)
-        
+
         return times
 
 
@@ -1823,8 +1837,8 @@ if __name__ == "__main__":
     b.AssignDuration(7)
     b.AssignSuccsesors("4ff")
 
-    
-    
+
+
     c = activity()
     c.AssignID(3)
     c.AssignDuration(30)
@@ -1853,13 +1867,13 @@ if __name__ == "__main__":
     g.AssignDuration(10)
     g.AssignPredecesors(6,2,1)
     g.SetDurationRange(min=1, ml=4,max=10)
-    
+
     h = activity()
     h.AssignID(8)
     h.AssignDuration(10)
     h.AssignPredecesors('6ss')
     h.SetDurationRange(min=3, ml=7,max=23)
-    
+
     i = activity()
     i.AssignID(9)
     i.AssignDuration(10)
@@ -1876,14 +1890,14 @@ if __name__ == "__main__":
     P.AddActivity(a,b,c,d,e,f,g,h,i,j)
 
     P.CalculateTotalFloats()
-    
+
     #P.Simulate(n=1000)
     P.PrintNetwork()
     P.PlotGantt()
     print len(P)
 
-    
- 
 
-    
+
+
+
 
