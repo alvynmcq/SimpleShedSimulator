@@ -24,6 +24,7 @@ Contents:
    driver
    gui
    xml_writer
+   test
 
 Indices and tables
 ==================
