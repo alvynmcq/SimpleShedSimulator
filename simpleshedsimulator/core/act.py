@@ -85,10 +85,14 @@ class activity:
                 Sets self.ID = ID.
             Raises:
             '''
-        try:
-            self.ID = int(ID)
-        except:
-            print "Assigned ID must be integer"
+        if ID < 1:
+            errormessage = 'Cant have ID less than 1.'
+            raise AttributeError(errormessage)
+        else:  
+			try:
+				self.ID = int(ID)
+			except:
+				print "Assigned ID must be integer"
 
     def AssignName(self, name):
 
@@ -506,7 +510,7 @@ class activity:
         else:
             return self.total_critical_slack
 
-    def SetDurationRange(self, **kwargs):
+    def AssignDurationRange(self, **kwargs):
         '''Sets the duration range of the activity
 
         Args:

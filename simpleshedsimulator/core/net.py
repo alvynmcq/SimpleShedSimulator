@@ -23,6 +23,7 @@ import sqlite3 as lite
 import json
 import pprint
 import os
+import sys
 import stats
 from triangular import triang
 from table import MakeTable
@@ -68,6 +69,14 @@ class network:
         self.enddate = None
         self.eddate_id = None
         self.startdate = None
+        
+        #find the db directory
+        if os.name == 'nt':
+            path_to_db = "\\".join(sys.path[0].split('\\')[:-1]) + "\\db"
+            self.path_to_db = path_to_db + "\\Simulation_variates.db"
+        elif os.name == 'posix':
+            path_to_db = "/".join(sys.path[0].split('/')[:-1]) + "/db"
+            self.path_to_db = path_to_db + "/Simulation_variates.db"
 
     def __iter__(self):
         for activity in self.activities:
@@ -261,8 +270,6 @@ class network:
                     if heading == 'Slack':
                         row.append(str(self[i].GetSlack()))
 
-                    
-                
                 
                 data.append(row)
             except KeyError:
@@ -630,7 +637,7 @@ class network:
 
     def Simulate(self, n=10, WriteToDB=True, DbName="Simulation_variates.db", RiskTable = None):
 
-        '''Simulates the network. n = 1000 itterations is default.
+        '''Simulates the network. n itterations is default.
          Currently, the only avilable distribution is the triangular
          distribution (http://en.wikipedia.org/wiki/Triangular_distribution)
          The method allso gives you the opportunity to write the resulting endates, that is the duration (days) from
@@ -651,6 +658,8 @@ class network:
             os.remove(DbName)
         except OSError:
             pass
+
+        DbName = self.path_to_db
 
         if WriteToDB == True:
             #Constructing appropriate database using SQLite
@@ -748,8 +757,6 @@ class network:
                     db_string_dates = "INSERT INTO SimulationResults VALUES" + enddates
                     db_string_criticality = "INSERT INTO SimulationResults_critical VALUES" + criticality
                     cur.execute(db_string_dates)
-                    print db_string_criticality
-                    print db_string_dates
                     cur.execute(db_string_criticality)
 
                     enddate = (self.GetNetworkEnd() - self.GetNetworkStart()).days
@@ -767,6 +774,7 @@ class network:
             Returns:
                 Returns a list consisting of integers. (days from project start to activity finish)
             Raises:'''
+        DbName = self.path_to_db
         ID = "ID" + str(ID)
         try:
             con = lite.connect(DbName)
@@ -803,6 +811,7 @@ class network:
             Raises:'''
 
         data = self.GetSimulationVariates()
+        print "hello"
         plt.hist(data, cumulative = cumulative, bins = bins, normed=normed)
         plt.grid()
         plt.show()
@@ -918,7 +927,7 @@ class network:
 
         if self.sortedby is not "x.GetID()":
             self.SortNetwork()
-
+        self.__ForwardPass()
         startdate = self.GetNetworkStart()
         enddate = self.GetNetworkEnd()
         ids = []

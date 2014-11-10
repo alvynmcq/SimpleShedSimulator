@@ -1,7 +1,6 @@
 import os
 import sys
 
-print os.name
 if os.name == 'nt':
         path_to_core = "\\".join(sys.path[0].split('\\')[:-1]) + "\\core"
         sys.path.insert(0, path_to_core)
