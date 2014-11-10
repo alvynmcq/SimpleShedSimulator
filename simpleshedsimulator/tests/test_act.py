@@ -1,5 +1,6 @@
-from simpleshedsimulator.core.act import activity
+import path
 import unittest
+from act import activity
 
 
 class TestActClass(unittest.TestCase):
@@ -16,9 +17,6 @@ class TestActClass(unittest.TestCase):
 		self.assertEqual(self.activity.GetDuration(), duration)
 	
 
-
-
-
-
 if __name__ == '__main__':
 	unittest.main()
+
