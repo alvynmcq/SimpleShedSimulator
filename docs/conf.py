@@ -21,6 +21,9 @@ sys.path.append(path1)
 path2 = path + "/simpleshedsimulator/gui"
 sys.path.append(path2)
 
+path3 = path + "/simpleshedsimulator/tests"
+sys.path.append(path3)
+
 print sys.path
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

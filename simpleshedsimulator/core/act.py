@@ -77,7 +77,7 @@ class activity:
 
     def AssignID(self, ID):
 
-        '''Assigns an ID to the activity.
+        '''Assigns an ID to the activity. The smallest allowed ID is 1.
 
             Args:
                 ID (int): Preffered ID of the activity
@@ -89,10 +89,10 @@ class activity:
             errormessage = 'Cant have ID less than 1.'
             raise AttributeError(errormessage)
         else:  
-			try:
-				self.ID = int(ID)
-			except:
-				print "Assigned ID must be integer"
+            try:
+                self.ID = int(ID)
+            except:
+                print "Assigned ID must be integer"
 
     def AssignName(self, name):
 
@@ -521,7 +521,7 @@ class activity:
 
         ex::
 
-           activity.SetDurationRang(min=1, ml=2, max=3)
+           activity.AssignDurationRang(min=1, ml=2, max=3)
 
         '''
 

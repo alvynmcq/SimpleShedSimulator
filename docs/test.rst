@@ -1,8 +1,13 @@
 
+.. automodule:: test_simulation
+   :members: TestNetClass
 
 
-Testing
---------
 
+Tests - testing the software
+-----------------------------
+
+.. autoclass:: TestNetClass
+   :members: 
 
 

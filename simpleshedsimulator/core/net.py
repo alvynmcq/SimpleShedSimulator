@@ -253,8 +253,8 @@ class network:
                         row.append(str(self[i].GetEnd(asobject=True)))
                     if heading == 'Duration':
                         row.append(str(self[i].GetDuration()))
-                    if heading == 'Critical':
-                        row.append(str(self[i].GetCritical()))
+                    if heading == 'Slack':
+                        row.append(str(self[i].GetSlack()))
                     if heading == 'DurationRangeML':
                         row.append(str(self[i].GetDurationRangeML()))
                     if heading == 'DurationRangeMax':
@@ -569,7 +569,7 @@ class network:
         return [x for x in critical_path if x is not None] #removes None values
 
     def CalculateTotalFloats(self):
-        '''calculates the total floats and assigns that float to corresponding activity'''
+        '''Calculates the total floats and assigns that float to corresponding activity'''
 
         self.__ForwardPass()
         early_starts = [q.GetStart(asobject=True) for q in self]
@@ -637,11 +637,13 @@ class network:
 
     def Simulate(self, n=10, WriteToDB=True, DbName="Simulation_variates.db", RiskTable = None):
 
-        '''Simulates the network. n itterations is default.
+        '''Simulates the network. n = 10 itterations is default (which off course is not enough!)
          Currently, the only avilable distribution is the triangular
          distribution (http://en.wikipedia.org/wiki/Triangular_distribution)
          The method allso gives you the opportunity to write the resulting endates, that is the duration (days) from
          project start to the relevant activity's enddate to a database file called Simulation_variates.db using SQLite
+         This file is by default located in /db. You may allso simulate through a Risk table, for that see the documentation of the Driver module
+
 
             Args: n (int) number of itterations
                   WriteToDB (boealen) if True writes the endates to database
@@ -652,7 +654,7 @@ class network:
                 Writes simulation variates to SQLite DB
             Raises:'''
 
-        #updating theproject
+        #updating the project
         #Removing old database file
         try:
             os.remove(DbName)
@@ -660,7 +662,7 @@ class network:
             pass
 
         DbName = self.path_to_db
-
+        current_durations = [activity.GetDuration() for activity in self]
         if WriteToDB == True:
             #Constructing appropriate database using SQLite
             db_string = ""
@@ -681,7 +683,7 @@ class network:
 
         self.networkends = []
         """
-        this loops assigns a random duration for each activity in the
+        This loops assigns a random duration for each activity in the
         network, and calculates the endtime. This is done n times
         """
         #Generates n variates
@@ -763,6 +765,10 @@ class network:
                     self.networkends.append(enddate)
         con.commit()
         con.close()
+        
+        for duration, activity in zip(current_durations, self):
+            activity.AssignDuration(duration)
+
 
     def GetSimulationVariates(self,DbName="Simulation_variates.db", ID = 1, table="SimulationResults"):
 
