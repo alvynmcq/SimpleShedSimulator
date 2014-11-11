@@ -14,6 +14,7 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import path
 import unittest
 from act import activity
@@ -48,9 +49,8 @@ class TestNetClass(unittest.TestCase):
         """Test if the .GetCritical() method returns None values"""
         msg = "Get Critical returns None"
         self.P.CalculateTotalFloats()
-        
         for activities in self.P:
-            self.assertIsNone(activities.GetCritical(), msg)
+            self.assertIsNotNone(activities.GetCritical(), msg)
 
 if __name__ == '__main__':
     unittest.main()

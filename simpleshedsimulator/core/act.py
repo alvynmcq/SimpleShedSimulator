@@ -14,7 +14,16 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #standard modules
-
+"""
+The act module contains the activity class which is used to handle
+activities. It implements various methods to handle and implement 
+activities and every simpleshedsimulator project must have instances of
+this class. The methods are mainly "setting"- and "getting" methods 
+where various attributes can be assigned, changed or retrieved. After
+initiating activity objects as in your project these objectes are then 
+assigned to a network object which then allows yoy to control your 
+network. For further information see the net module 
+"""
 
 import datetime
 import time
@@ -95,7 +104,7 @@ class activity:
 
     def AssignName(self, name):
 
-        '''Assigns a name to the activit inctance.
+        '''Assigns a name to the activity inctance.
 
             Args:
                 name (str): The activity name
@@ -510,7 +519,9 @@ class activity:
             return self.total_critical_slack
 
     def AssignDurationRange(self, **kwargs):
-        '''Sets the duration range of the activity
+        '''Sets the duration range of the activity such that the 
+        activity's duration is in the intervall [min, max] and mode 
+        equal to ml.
 
         Args:
 

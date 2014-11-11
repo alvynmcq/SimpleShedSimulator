@@ -1,13 +1,9 @@
+activity- Create an activity
+----------------------------
 
 .. automodule:: act
    :members: activity
 
 
-
-activity- Create an activity
-----------------------------
-
-.. autoclass:: activity
-   :members: 
 
 
