@@ -68,11 +68,11 @@ class network:
         self.startdate = None
         
         #find the db directory
-        if os.name == 'nt':
-            path_to_db = "\\".join(sys.path[0].split('\\')[:-1]) + "\\db"
+                if os.name == 'nt':
+            path_to_db = "\\".join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]) + "\\db"
             self.path_to_db = path_to_db + "\\Simulation_variates.db"
         elif os.name == 'posix':
-            path_to_db = "/".join(sys.path[0].split('/')[:-1]) + "/db"
+            path_to_db = "/".join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-1]) + "/db"
             self.path_to_db = path_to_db + "/Simulation_variates.db"
 
     def __iter__(self):
