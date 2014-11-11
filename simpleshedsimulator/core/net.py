@@ -803,7 +803,7 @@ class network:
 
             return int(variate)
 
-    def PlotHistEnd(self, ID=1 cumulative = False, bins=20, normed = True):
+    def PlotHistEnd(self, ID=1, cumulative = False, bins=20, normed = True):
 
         '''Plots the network enddate as a histogram (currently uses Matplotlib). By default the duration of activity 1 is plotted
 
