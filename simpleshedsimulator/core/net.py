@@ -803,18 +803,17 @@ class network:
 
             return int(variate)
 
-    def PlotHistEnd(self, cumulative = False, bins=20, normed = True):
+    def PlotHistEnd(self, ID=1 cumulative = False, bins=20, normed = True):
 
-        '''Plots the network enddate as a histogram (currently uses Matplotlib).
+        '''Plots the network enddate as a histogram (currently uses Matplotlib). By default the duration of activity 1 is plotted
 
-            Args: Cumulative (boolean), bins (int), normed (boolean)
+            Args: ID (int), Cumulative (boolean), bins (int), normed (boolean)
 
             Returns:
                 Returns a matplotlib object
             Raises:'''
 
-        data = self.GetSimulationVariates()
-        print "hello"
+        data = self.GetSimulationVariates(ID = ID)
         plt.hist(data, cumulative = cumulative, bins = bins, normed=normed)
         plt.grid()
         plt.show()
