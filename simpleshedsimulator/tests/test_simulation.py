@@ -51,6 +51,40 @@ class TestNetClass(unittest.TestCase):
         self.P.CalculateTotalFloats()
         for activities in self.P:
             self.assertIsNotNone(activities.GetCritical(), msg)
+    
+    def test_Float1(self):
+        """Tests total floats in network"""
+        activities = [activity() for number in range(3)]
+        [activities[i].AssignID(i+1) for i in range(3)]
+        [activities[i].AssignDuration(duration) for duration, i in zip([5,10,1], range(3))]
+        [activities[i].AssignSuccsesors(3) for i in range(3)]
+        P = network()
+        P.AddActivity(*activities)
+        P.CalculateTotalFloats()
+        calculated_floats = [act.GetSlack() for act in P]
+        floats = [5,0,0]
+        self.assertListEqual(calculated_floats, floats)
+    
+    def test_Float1(self):
+        """Tests total floats in network"""
+        activities = [activity() for number in range(4)]
+        [activities[i].AssignID(i+1) for i in range(4)]
+        [activities[i].AssignDuration(duration) for duration, i in zip([5,10,20,3], range(4))]   
+        
+        activities[0].AssignSuccsesors(2)
+        activities[1].AssignSuccsesors(4)
+        activities[2].AssignSuccsesors(4)  
+        
+        P = network()
+        P.AddActivity(*activities)
+        P.CalculateTotalFloats()
+        calculated_floats = [act.GetSlack() for act in P]
+        floats = [5,5,0,0]
+        self.assertListEqual(calculated_floats, floats)
+        
+        
+        
+        
 
 if __name__ == '__main__':
     unittest.main()
