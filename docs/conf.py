@@ -28,7 +28,7 @@ print sys.path
 
 #deling with readthe docs
 import mock
-MOCK_MODULES = ['wx.lib.mixins.listctrl','matplotlib.mlab','numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate', 'wx']
+MOCK_MODULES = ['date2num', 'lib.mixins.listctrl', 'matplotlib.dates', 'wx.lib.mixins.listctrl','matplotlib.mlab','numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate', 'wx']
 for mod_name in MOCK_MODULES:
   sys.modules[mod_name] = mock.Mock()
 
