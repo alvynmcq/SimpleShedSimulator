@@ -27,7 +27,8 @@ sys.path.append(path3)
 print sys.path
 
 #deling with readthe docs
-import mock MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate', 'wx']
+import mock
+MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate', 'wx']
 for mod_name in MOCK_MODULES:
   sys.modules[mod_name] = mock.Mock()
 
