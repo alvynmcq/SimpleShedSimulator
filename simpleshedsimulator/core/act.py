@@ -464,7 +464,7 @@ class activity:
                 self.total_critical = True
 
     def GetCritical(self, free=False):
-        '''returns True/false depending on criticality of activity
+        '''Returns True/false depending on criticality of activity
         (.SetCritical())
 
         Args: free (True/False)

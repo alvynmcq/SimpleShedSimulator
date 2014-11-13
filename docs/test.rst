@@ -2,8 +2,10 @@ Tests - testing the software
 -----------------------------
 
 .. automodule:: test_simulation
-   :members: TestNetClass
+   :members: TestSimulationClass
 
+.. automodule:: test_net
+   :members: TestNetClass
 
 
 

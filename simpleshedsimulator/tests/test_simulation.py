@@ -21,10 +21,10 @@ from act import activity
 from net import network
 
 
-class TestNetClass(unittest.TestCase):
+class TestSimulationClass(unittest.TestCase):
     """
     This class is meant for developing. The class defines some tests for
-    the network class loacted in the net module
+    simulation using the network class andloacted in the net module
     """
 
 
@@ -45,43 +45,30 @@ class TestNetClass(unittest.TestCase):
         msg = "Durations NOT set to original values after simulation"
         self.assertSequenceEqual(pre_baseduration, post_baseduration, msg)
 
+    def test_ProbabiliyOfCritical(self):
+        """ Tests calculation of probability of criticality of an activity"""
+        activities = [activity() for number in range(3)]
+        [activities[i].AssignID(i+1) for i in range(3)]
+        [activities[i].AssignDuration(duration) for duration, i in zip([100,100,100], range(3))]
+        [activities[i].AssignDurationRange(min=50, ml=100, max=150) for i in range(3)]
+        [activities[i].AssignSuccsesors(3) for i in range(2)]
+        P = network()
+        P.AddActivity(*activities)
+        P.Simulate(1000)
+        for i in range(1,4):
+            self.assertGreater(P.GetProbabiltyOfCritical(ID=i), 0)
+            self.assertLessEqual(P.GetProbabiltyOfCritical(ID=i), 1)
+        
+       
+    
+    
     def test_GetCritical(self):
         """Test if the .GetCritical() method returns None values"""
         msg = "Get Critical returns None"
         self.P.CalculateTotalFloats()
         for activities in self.P:
             self.assertIsNotNone(activities.GetCritical(), msg)
-    
-    def test_Float1(self):
-        """Tests total floats in network"""
-        activities = [activity() for number in range(3)]
-        [activities[i].AssignID(i+1) for i in range(3)]
-        [activities[i].AssignDuration(duration) for duration, i in zip([5,10,1], range(3))]
-        [activities[i].AssignSuccsesors(3) for i in range(3)]
-        P = network()
-        P.AddActivity(*activities)
-        P.CalculateTotalFloats()
-        calculated_floats = [act.GetSlack() for act in P]
-        floats = [5,0,0]
-        self.assertListEqual(calculated_floats, floats)
-    
-    def test_Float1(self):
-        """Tests total floats in network"""
-        activities = [activity() for number in range(4)]
-        [activities[i].AssignID(i+1) for i in range(4)]
-        [activities[i].AssignDuration(duration) for duration, i in zip([5,10,20,3], range(4))]   
-        
-        activities[0].AssignSuccsesors(2)
-        activities[1].AssignSuccsesors(4)
-        activities[2].AssignSuccsesors(4)  
-        
-        P = network()
-        P.AddActivity(*activities)
-        P.CalculateTotalFloats()
-        calculated_floats = [act.GetSlack() for act in P]
-        floats = [5,5,0,0]
-        self.assertListEqual(calculated_floats, floats)
-        
+ 
         
         
         

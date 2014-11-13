@@ -653,12 +653,13 @@ class network:
 
         #updating the project
         #Removing old database file
+        DbName = self.path_to_db
         try:
             os.remove(DbName)
         except OSError:
             pass
 
-        DbName = self.path_to_db
+        
         current_durations = [activity.GetDuration() for activity in self]
         if WriteToDB == True:
             #Constructing appropriate database using SQLite
@@ -787,6 +788,21 @@ class network:
             return [int(i[0]) for i in cur.fetchall()]
         except:
             raise AttributeError('Could not find database file')
+
+    def GetProbabiltyOfCritical(self,DbName="Simulation_variates.db", ID = 1, table="SimulationResults_critical"):
+        
+        '''Returns the estimated probability of an activity being critical
+
+            Args: DbName (str) name of database. by default: Simulation_variates.db
+                  ID (str) The Id of the activity 
+
+            Returns:
+                Returns a floating point number in the intervall [0,1].
+            Raises:'''
+
+        variates = self.GetSimulationVariates(DbName=DbName, ID = ID, table=table) 
+
+        return float(variates.count(0))/len(variates)
 
     def GetSimulationMean(self, I):
         return stats.mean(self.GetSimulationVariates(ID = I))
