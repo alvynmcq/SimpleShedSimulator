@@ -5,9 +5,20 @@ The goal of SimpleShedSimulator is to let the analyst quickly perform schedule r
 
 There is still much work to be done and SimpleShedSimulator is not ready for use. 
 
+The documentation can be found at http://simpleshedsimulator.readthedocs.org/en/latest/index.html
+
 For any questions, email me at anders524@hotmail.com
 
 You are welcome to join :)
+
+Installation - Install SSS
+---------------------------
+
+Install the software by cd into the simpleshedsimulator and run the following::
+
+    sudo python setup.py install
+
+you  should now be ready to start the fun :)
 
 
 Creating activities
