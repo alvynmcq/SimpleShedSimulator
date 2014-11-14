@@ -20,6 +20,7 @@ Contents:
    
    Installation
    Tutorial
+   Tutorial2
    act
    net
    driver
