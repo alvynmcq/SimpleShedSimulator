@@ -14,7 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from distutils.core import setup
+try:
+  from setuptools import setup
+except ImportError:
+  from distutils.core import setup
 
 setup(
     name='SimpleShedSimulator',
@@ -31,6 +34,10 @@ setup(
                   'simpleshedsimulator.db': ['*.db']}, 
     license='GPLv3',
     long_description=open('README.md').read(),
+    install_requires=[
+    "Matpoltlib > = 1.4",
+    "wxPython >= 2.9",
+    ],
 )
 
 
