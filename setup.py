@@ -35,7 +35,7 @@ setup(
     license='GPLv3',
     long_description=open('README.md').read(),
     install_requires=[
-    "Matpoltlib > = 1.4",
+    "Matpoltlib >= 1.4",
     "wxPython >= 2.9",
     ],
 )
